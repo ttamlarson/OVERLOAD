@@ -16,7 +16,7 @@ const json = (body, status = 200, headers = {}) => new Response(JSON.stringify(b
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers }
 });
 const text = (value, max = MAX_CONTEXT_TEXT) => typeof value === "string" ? value.trim().slice(0, max) : "";
-const numeric = value => Number.isFinite(Number(value)) ? Math.max(0, Math.min(100000, Number(value))) : null;
+const numeric = value => value === null || value === undefined || value === "" ? null : Number.isFinite(Number(value)) ? Math.max(0, Math.min(100000, Number(value))) : null;
 const date = value => /^\d{4}-\d{2}-\d{2}$/.test(String(value || "")) ? String(value) : null;
 
 export function sanitiseRequest(input) {
