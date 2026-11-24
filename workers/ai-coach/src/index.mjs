@@ -151,9 +151,24 @@ export async function handleRequest(request, env) {
   if (!limit.success) return json({ error: "AI coaching limit reached. Try again later." }, 429, cors);
   let raw;
   try {
-    raw = await request.text();
-    if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) return json({ error: "Request is too large." }, 413, cors);
-    raw = JSON.parse(raw);
+    const reader = request.body?.getReader();
+    if (!reader) return json({ error: "Invalid JSON request." }, 400, cors);
+    const chunks = [];
+    let total = 0;
+    while (true) {
+      const part = await reader.read();
+      if (part.done) break;
+      total += part.value.byteLength;
+      if (total > MAX_BODY_BYTES) {
+        await reader.cancel();
+        return json({ error: "Request is too large." }, 413, cors);
+      }
+      chunks.push(part.value);
+    }
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+    raw = JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     return json({ error: "Invalid JSON request." }, 400, cors);
   }
