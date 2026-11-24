@@ -1,6 +1,6 @@
 {
   "app": "OVERLOAD",
-  "version": "5.14.2",
+  "version": "5.14.3",
   "releaseDate": "2026-11-24",
-  "notes": "Improves offline caching for all installed PWA icons and adds automated release metadata and service-worker shell consistency checks."
+  "notes": "Hardens backup restore validation with explicit schema-version checks, bounded record collections, legacy APEX/CORV compatibility and offline caching of the validator."
 }
