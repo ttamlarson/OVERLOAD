@@ -73,3 +73,13 @@ test('rejects malformed or oversized AI result structures before rendering', asy
     ok: true, json: async () => ({ result: { title: 'Review', summary: 'Bad', suggestions: ['1','2','3','4'], dataUsed: [], limitations: [] } })
   })), /could not be verified/i);
 });
+
+
+test('excludes impossible calendar dates from AI summaries', () => {
+  const preview = ai.buildWeeklyReview({
+    workouts: [{ date: '2026-19-42', type: 'Invalid', exercises: [{ sets: [{ weight: 100, reps: 5 }] }] }],
+    recoveries: [{ date: '2026-02-30', sleep: 6, energy: 3, stress: 2, soreness: 2 }]
+  }, '2026-11-24');
+  assert.equal(preview.context.workouts.length, 0);
+  assert.equal(preview.context.recovery, undefined);
+});
