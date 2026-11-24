@@ -32,8 +32,9 @@ The request intentionally excludes user identifiers, exact body measurements, fr
 `POST /v1/coach`
 
 Headers:
-- `Authorization: Bearer <Cloudflare Access JWT>`
 - `Content-Type: application/json`
+- Browser requests must use `credentials: "include"` so the Cloudflare Access session cookie is sent. Cloudflare Access injects the `Cf-Access-Jwt-Assertion` header after authenticating the request; the Worker independently verifies its signature, issuer, audience and expiry.
+- A bearer token is accepted for controlled server-side integration tests only; do not expose a reusable bearer secret in the PWA.
 
 Body:
 ```json
