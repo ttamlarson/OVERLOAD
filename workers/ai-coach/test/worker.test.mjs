@@ -71,7 +71,7 @@ test("returns CORS preflight only for the configured origin", async () => {
   assert.equal(rejected.status, 403);
 });
 
-test("fails closed when the rate limiter is missing", async () => {
+test("rejects invalid Access assertions before invoking rate limiting", async () => {
   const response = await handleRequest(new Request("https://api.example/v1/coach", { method: "POST", headers: { Origin: "https://app.example", "cf-access-jwt-assertion": "not-a-valid-token" }, body: "{}" }), { OVERLOAD_ALLOWED_ORIGIN: "https://app.example", AI_ENABLED: "true" });
   assert.equal(response.status, 401);
 });
