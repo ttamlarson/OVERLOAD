@@ -45,6 +45,43 @@ test("rejects malformed model output and normalises valid output", () => {
   assert.match(valid.disclaimer, /not medical advice/);
 });
 
+
+test("sanitises bounded AI programme preferences and ignores unapproved fields", () => {
+  const result = sanitiseRequest({ task: "programme_generation", consent: true, context: {
+    goal: "Build muscle", focus: "Chest and back", daysPerWeek: 4, sessionMinutes: 60,
+    trainingLevel: "intermediate", equipment: ["Barbell", "Dumbbells", "Cable machine"],
+    splitPreference: "Upper / Lower", trainingStyle: "Hypertrophy", privateNotes: "must not pass"
+  }});
+  assert.equal(result.context.daysPerWeek, 4);
+  assert.equal(result.context.equipment.length, 3);
+  assert.equal(result.context.privateNotes, undefined);
+  assert.equal(result.context.focus, "Chest and back");
+});
+
+test("requires a structured programme for generation and validates its exercise bounds", () => {
+  const base = { title: "Programme", summary: "A balanced plan", suggestions: [], dataUsed: [], limitations: [] };
+  assert.equal(validateModelResponse(base, true), null);
+  const programme = { name: "Upper Lower", description: "Progress reps, then load.", days: [
+    { name: "Upper A", exercises: [
+      { name: "Bench press", sets: 3, target: "6–8" },
+      { name: "Row", sets: 3, target: "8–12" },
+      { name: "Shoulder press", sets: 2, target: "8–10" }
+    ]}
+  ]};
+  assert.ok(validateModelResponse({ ...base, programme }, true));
+  assert.equal(validateModelResponse({ ...base, programme: { ...programme, days: [{ name: "Bad", exercises: [{ name: "Bench", sets: 99, target: "1" }] }] } }, true), null);
+});
+
+test("programme generation prompt requires available equipment and sensible volume", () => {
+  const safe = sanitiseRequest({ task: "programme_generation", consent: true, context: {
+    goal: "Strength", daysPerWeek: 3, sessionMinutes: 45, equipment: ["Dumbbells"]
+  }});
+  const messages = buildMessages(safe);
+  assert.match(messages[0].content, /Use only listed equipment/);
+  assert.match(messages[0].content, /balanced strength/);
+  assert.match(messages[1].content, /programme_generation/);
+});
+
 test("refuses requests when origin is not explicitly allow-listed", async () => {
   const response = await handleRequest(new Request("https://api.example/v1/coach", { method: "POST", headers: { Origin: "https://evil.example" }, body: "{}" }), {});
   assert.equal(response.status, 403);
