@@ -1,6 +1,6 @@
 {
   "app": "OVERLOAD",
-  "version": "5.14.5",
+  "version": "5.14.6",
   "releaseDate": "2026-11-24",
-  "notes": "Hardens AI review data minimisation, excludes stale recovery check-ins, validates model response structure and displays data-used context; service remains disconnected until protected Cloudflare configuration."
+  "notes": "Streamlines the five-destination navigation, consolidates programmes under Training, and groups secondary tools into collapsible panels without changing stored records."
 }
