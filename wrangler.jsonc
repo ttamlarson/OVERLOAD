@@ -18,5 +18,15 @@
     "AI_API_BASE_URL": "https://api.openai.com/v1/chat/completions",
     "AI_MODEL": "gpt-4o-mini",
     "OVERLOAD_ALLOWED_ORIGIN": "https://overload.ttamlarson.workers.dev"
-  }
+  },
+  "ratelimits": [
+    {
+      "name": "AI_RATE_LIMITER",
+      "namespace_id": "741001",
+      "simple": {
+        "limit": 10,
+        "period": 60
+      }
+    }
+  ]
 }
