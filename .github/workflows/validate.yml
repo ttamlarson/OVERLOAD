@@ -46,15 +46,15 @@ jobs:
           if (queryVersions.some(value => value !== version)) {
             throw new Error('A cache-busted app asset does not match version.json.');
           }
-          const coreMatch = serviceWorker.match(/const CORE = \\[(.*?)\\];/s);
+          const coreMatch = serviceWorker.match(/const CORE = \[(.*?)\];/s);
           if (!coreMatch) throw new Error('Service-worker CORE asset list could not be parsed.');
           const coreAssets = [...coreMatch[1].matchAll(/"([^"]+)"/g)].map(match => match[1]);
           for (const asset of coreAssets) {
-            const localPath = asset.replace(/^\\.\\//, '');
+            const localPath = asset.replace(/^\.\//, '');
             if (localPath && !fs.existsSync(localPath)) throw new Error('Missing service-worker core asset: ' + asset);
           }
           for (const icon of manifest.icons || []) {
-            const localPath = icon.src.replace(/^\\.\\//, '');
+            const localPath = icon.src.replace(/^\.\//, '');
             if (!fs.existsSync(localPath)) throw new Error('Missing manifest icon: ' + icon.src);
           }
           console.log('Release metadata, cache-busted asset versions, service-worker core assets and manifest icons are consistent.');
