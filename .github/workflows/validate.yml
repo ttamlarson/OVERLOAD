@@ -16,6 +16,7 @@ jobs:
           node --check beta-feedback.js
           node --check sw.js
           node --check update.js
+          node --check workers/ai-coach/src/index.mjs
           node <<'NODE'
           const fs = require('fs');
           const { spawnSync } = require('child_process');
