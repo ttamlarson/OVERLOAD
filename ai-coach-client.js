@@ -8,7 +8,7 @@
     const node = document.querySelector('meta[name="overload-ai-endpoint"]');
     return node ? String(node.content || '').trim() : '';
   };
-  const day = value => /^\d{4}-\d{2}-\d{2}$/.test(String(value || '')) ? String(value) : '';
+  const day = value => { const candidate = String(value || ''); if (!/^\d{4}-\d{2}-\d{2}$/.test(candidate)) return ''; const parsed = new Date(candidate + 'T00:00:00Z'); return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === candidate ? candidate : ''; };
   const num = value => {
     const parsed = value === null || value === undefined || value === '' ? 0 : Number(String(value).replace(',', '.'));
     return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
