@@ -1,6 +1,6 @@
 # OVERLOAD data protection, backup and installation audit
 
-**Source-reviewed release:** 5.14.2  
+**Source-reviewed release:** 5.14.3  
 **Remediation included:** 5.14.2 (offline icon caching and release consistency checks)  
 **Architecture:** static GitHub Pages PWA; local-first browser storage; no user accounts or automatic cloud sync.
 
@@ -18,7 +18,7 @@ This is a privacy advantage compared with a centrally hosted user database, but 
 | Cross-device recovery | No automatic sync; users need to export/import | Documented |
 | Save failures | Previous save path could throw on quota/storage errors; quiet persist failures were possible | Hardened with visible warning |
 | Backup export | JSON export existed; object URL was revoked immediately after click | Fixed with delayed URL cleanup and metadata |
-| Backup restore | Validation was minimal and safety copy depended on a legacy global not loaded by this app | Fixed: schema checks and a downloaded pre-restore safety backup |
+| Backup restore | Validation was minimal and safety copy depended on a legacy global not loaded by this app | Hardened in 5.14.3: shared tested validator, schema-version enforcement, bounded record collections, and a downloaded pre-restore safety backup |
 | Restore compatibility | Legacy exports remain accepted when core record arrays are present | Preserved |
 | Offline shell | Service worker cache used query-string versions that did not match some script URLs | Fixed with query-insensitive cache matching and aligned core assets |
 | PWA identity | Manifest used stale icon query versions and did not explicitly include standard 192/512 PNG icons | Fixed |
@@ -68,6 +68,12 @@ Never test restore over a user's only copy of real records. Use a separate test 
 1. Open the live URL in a supported Chromium browser such as Chrome or Edge.
 2. Use the install icon in the address bar or browser menu → Install OVERLOAD.
 3. Launch from the installed app shortcut. The browser tab remains a supported fallback.
+
+## 5.14.3 source review update
+
+- Backup validation is now isolated in `backup-validation.js` and tested independently. It accepts legacy APEX/CORV exports and current OVERLOAD schema version 1, rejects unsupported schema versions and malformed collections, and caps each record collection at 50,000 entries.
+- The validator is included in the service-worker core cache so restore validation remains available offline.
+- Automated CI now runs the backup validation tests alongside the existing application and AI Worker tests.
 
 ## 5.14.2 source review update\n\n- The service-worker precache now includes the 192 px and 512 px PNG icons referenced by the web app manifest, alongside the Apple touch icon.\n- The validation workflow now checks release-version consistency across `version.json`, the update manager, beta feedback form, service-worker cache name and cache-busted HTML asset URLs. It also checks that service-worker core assets and manifest icons exist in the repository.\n- These are source-level safeguards. They do not replace physical-device install, offline, update or backup/restore testing. The third-party QR scanner remains externally loaded from unpkg without a verified Subresource Integrity hash, and the current CSP still permits inline scripts and styles.\n\n## Release verification checklist
 
