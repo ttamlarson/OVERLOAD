@@ -454,40 +454,21 @@ input,select,textarea{max-width:100%;font-size:16px}
  </div>
 
  <details class="dash-section" open><summary>Training load <span class="small">ROLLING 7-DAY VIEW</span></summary><div class="section-content" id="coachLoad"><div class="empty">Log workouts to build your training-load view.</div></div></details>
- <details class="dash-section" id="coachBriefSection" open>
-  <summary>Your coaching brief <span class="small">DAILY GUIDANCE</span></summary>
+ <details class="dash-section" id="aiReviewSection" open>
+  <summary>AI coaching brief & review <span class="small">DAILY GUIDANCE · PERSONAL INSIGHTS</span></summary>
   <div class="section-content" id="coachBrief"><div class="empty">Your coaching brief will appear here.</div></div>
- </details>
 
- <details class="dash-section" id="aiPermissionsSection">
-  <summary>AI & camera permissions <span class="small">PRIVACY CONTROLS</span></summary>
-  <div class="section-content">
-   <p class="small">Enable optional AI and camera features on this device. Your choice is saved so you do not need to consent again for each action. AI sends only the question, selected programme preferences or compact training summary described below. Barcode scanning uses your camera locally; the barcode may be sent to Open Food Facts for product lookup. You can turn this off here at any time.</p>
-   <label class="row" style="align-items:flex-start;gap:10px;margin:12px 0"><input id="featureConsent" type="checkbox"><span class="small">Enable AI and camera features on this device.</span></label>
-   <div class="small" id="featureConsentStatus" role="status">AI and camera features are disabled until enabled.</div>
-  </div>
- </details>
-
- <details class="dash-section" id="aiReviewSection">
-  <summary>AI training review <span class="small">PERSONALISED INSIGHTS</span></summary>
-  <div class="section-content">
+  <div class="divider" style="margin:16px 0"></div>
+  <h3>AI training review</h3>
    <p class="small">Get a personalised review of your recent training, with practical suggestions for what to focus on next. A short summary is sent — not your full workout history or individual records.</p>
    <div class="notice" id="aiCoachStatus" role="status">AI coaching is not connected yet. Your records remain on this device.</div>
    <button class="btn" id="aiGenerate" type="button" disabled>Generate AI review</button>
    <div id="aiCoachResult" class="section-content" aria-live="polite"></div>
   </div>
+
  </details>
 
- <details class="dash-section" id="aiChatSection">
-  <summary>Ask your AI Coach <span class="small">CONVERSATIONAL COACHING</span></summary>
-  <div class="section-content">
-   <p class="small">Ask a training question in your own words — for example, “How should I adjust my next session?” or “Why has my bench stalled?” The Coach uses a short recent-training summary where available.</p>
-   <div class="field"><label for="aiChatQuestion">What would you like help with?</label><textarea id="aiChatQuestion" rows="3" maxlength="700" placeholder="Ask about your training, exercise selection, progression or recovery…"></textarea></div>
-   <button class="btn" id="aiChatSend" type="button" disabled>Ask Coach</button>
-   <div class="notice" id="aiChatStatus" role="status">Your question stays on this device until you choose to send it.</div>
-   <div id="aiChatResult" class="section-content" aria-live="polite"></div>
-  </div>
- </details>
+
 
  <details class="dash-section" id="aiProgrammeBuilder">
   <summary>Build a programme with AI <span class="small">PERSONALISED TRAINING PLAN</span></summary>
@@ -516,6 +497,30 @@ input,select,textarea{max-width:100%;font-size:16px}
    <p class="small">Generated plans are suggestions, not medical advice. Review exercise selection, technique and workload before training.</p>
   </div>
  </details>
+
+
+ <details class="dash-section" id="aiPermissionsSection">
+  <summary>AI & camera permissions <span class="small">PRIVACY CONTROLS</span></summary>
+  <div class="section-content">
+   <p class="small">Enable optional AI and camera features on this device. Your choice is saved so you do not need to consent again for each action. AI sends only the question, selected programme preferences or compact training summary described below. Barcode scanning uses your camera locally; the barcode may be sent to Open Food Facts for product lookup. You can turn this off here at any time.</p>
+   <label class="row" style="align-items:flex-start;gap:10px;margin:12px 0"><input id="featureConsent" type="checkbox"><span class="small">Enable AI and camera features on this device.</span></label>
+   <div class="small" id="featureConsentStatus" role="status">AI and camera features are disabled until enabled.</div>
+  </div>
+ </details>
+
+
+
+ <details class="dash-section" id="aiChatSection">
+  <summary>Ask your AI Coach <span class="small">CONVERSATIONAL COACHING</span></summary>
+  <div class="section-content">
+   <p class="small">Ask a training question in your own words — for example, “How should I adjust my next session?” or “Why has my bench stalled?” The Coach uses a short recent-training summary where available.</p>
+   <div class="field"><label for="aiChatQuestion">What would you like help with?</label><textarea id="aiChatQuestion" rows="3" maxlength="700" placeholder="Ask about your training, exercise selection, progression or recovery…"></textarea></div>
+   <button class="btn" id="aiChatSend" type="button" disabled>Ask Coach</button>
+   <div class="notice" id="aiChatStatus" role="status">Your question stays on this device until you choose to send it.</div>
+   <div id="aiChatResult" class="section-content" aria-live="polite"></div>
+  </div>
+ </details>
+
  <p class="small">AI suggestions are informational, may be inaccurate and are not medical advice. They never change your programme or records.</p>
  <div class="notice">Your on-device coaching brief uses your logged records. The optional AI review is a separate cloud request and only runs after you give consent. Coaching is informational, not medical advice.</div>
 </section>
