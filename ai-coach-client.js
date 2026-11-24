@@ -35,18 +35,26 @@
       return { date: day(w.date), label: String(w.type || w.name || 'Workout').slice(0,80), workingSets, tonnageKg: Math.round(tonnageKg) };
     });
     const recoveries = Array.isArray(state?.recoveries) ? state.recoveries : [];
-    const latest = recoveries.filter(r => day(r?.date)).sort((a,b) => String(b.date).localeCompare(String(a.date)))[0];
+    const latest = recoveries.filter(r => {
+      const age = dateAge(r?.date, today);
+      return age >= 0 && age <= 3;
+    }).sort((a,b) => String(b.date).localeCompare(String(a.date)))[0];
     const recovery = latest ? {
       date: day(latest.date), sleepHours: num(latest.sleep), energy: num(latest.energy),
       stress: num(latest.stress), soreness: num(latest.soreness)
     } : null;
     const foods = Array.isArray(state?.foods) ? state.foods : [];
-    const periodFoods = foods.filter(f => dateAge(f?.date, today) >= 0 && dateAge(f?.date, today) < 7);
-    const nutrition = periodFoods.length ? {
-      calories: Math.round(periodFoods.reduce((sum,f) => sum + num(f.cal ?? f.calories), 0) / Math.max(1, new Set(periodFoods.map(f=>f.date)).size)),
+    const periodFoods = foods.filter(f => {
+      const age = dateAge(f?.date, today);
+      return age >= 0 && age < 7;
+    });
+    const loggedDays = new Set(periodFoods.map(f => day(f?.date)).filter(Boolean)).size;
+    const nutrition = loggedDays ? {
+      calories: Math.round(periodFoods.reduce((sum,f) => sum + num(f.cal ?? f.calories), 0) / loggedDays),
       calorieTarget: num(state?.settings?.calories),
-      proteinGrams: Math.round(periodFoods.reduce((sum,f) => sum + num(f.pro ?? f.protein), 0) / Math.max(1, new Set(periodFoods.map(f=>f.date)).size)),
-      proteinTargetGrams: num(state?.settings?.protein)
+      proteinGrams: Math.round(periodFoods.reduce((sum,f) => sum + num(f.pro ?? f.protein), 0) / loggedDays),
+      proteinTargetGrams: num(state?.settings?.protein),
+      loggedDays
     } : null;
     return {
       task: 'weekly_review',
@@ -59,6 +67,26 @@
       }
     };
   }
+  function validateResult(result) {
+    if (!result || typeof result !== 'object' || Array.isArray(result)) return null;
+    if (typeof result.title !== 'string' || typeof result.summary !== 'string' ||
+        !Array.isArray(result.suggestions) || !Array.isArray(result.dataUsed) ||
+        !Array.isArray(result.limitations) ||
+        result.suggestions.length > 3 || result.dataUsed.length > 8 || result.limitations.length > 6 ||
+        !result.suggestions.every(item => typeof item === 'string') ||
+        !result.dataUsed.every(item => typeof item === 'string') ||
+        !result.limitations.every(item => typeof item === 'string')) return null;
+    return {
+      title: result.title.slice(0,100),
+      summary: result.summary.slice(0,900),
+      suggestions: result.suggestions.map(item => item.slice(0,300)),
+      dataUsed: result.dataUsed.map(item => item.slice(0,120)),
+      limitations: result.limitations.map(item => item.slice(0,180)),
+      disclaimer: typeof result.disclaimer === 'string'
+        ? result.disclaimer.slice(0,240)
+        : 'Training and nutrition information only — not medical advice.'
+    };
+  }
   async function requestWeeklyReview(context, consent, fetchImpl = fetch) {
     if (consent !== true) throw new Error('Review the data preview and provide consent before sending anything.');
     const url = endpoint();
@@ -69,16 +97,17 @@
     const response = await fetchImpl(url, {
       method: 'POST',
       credentials: 'include',
+      cache: 'no-store',
+      referrerPolicy: 'no-referrer',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ task: 'weekly_review', consent: true, context })
     });
     let payload = {};
     try { payload = await response.json(); } catch {}
     if (!response.ok) throw new Error(payload.error || 'AI coaching is temporarily unavailable.');
-    if (!payload.result || typeof payload.result.summary !== 'string' || !Array.isArray(payload.result.suggestions)) {
-      throw new Error('The AI response could not be verified. No training records were changed.');
-    }
-    return payload.result;
+    const result = validateResult(payload.result);
+    if (!result) throw new Error('The AI response could not be verified. No training records were changed.');
+    return result;
   }
-  window.OverloadAI = Object.freeze({ endpoint, buildWeeklyReview, requestWeeklyReview });
+  window.OverloadAI = Object.freeze({ endpoint, buildWeeklyReview, requestWeeklyReview, validateResult });
 })();
