@@ -49,3 +49,9 @@ test("refuses requests when origin is not explicitly allow-listed", async () => 
   const response = await handleRequest(new Request("https://api.example/v1/coach", { method: "POST", headers: { Origin: "https://evil.example" }, body: "{}" }), {});
   assert.equal(response.status, 403);
 });
+
+
+test("only serves the documented coaching endpoint", async () => {
+  const response = await handleRequest(new Request("https://api.example/not-the-coach", { method: "POST", headers: { Origin: "https://app.example" }, body: "{}" }), { OVERLOAD_ALLOWED_ORIGIN: "https://app.example" });
+  assert.equal(response.status, 404);
+});
