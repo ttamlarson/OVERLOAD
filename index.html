@@ -1321,6 +1321,7 @@ function init(){
 
  function sync(){state.current.type=$('wtype').value;state.current.date=$('wdate').value;state.current.duration=$('duration').value;state.current.notes=$('wnotes').value}
 function activateView(tab){
+ if(tab==='recovery'){activateView('coach');$('recovery').open=true;$('recovery').scrollIntoView({behavior:'smooth',block:'start'});return}
  const target=$(tab);if(!target)return;
  document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===tab));
