@@ -30,8 +30,34 @@ jobs:
               process.exit(result.status || 1);
             }
           });
-          JSON.parse(fs.readFileSync('manifest.webmanifest', 'utf8'));
-          JSON.parse(fs.readFileSync('version.json', 'utf8'));
+          const manifest = JSON.parse(fs.readFileSync('manifest.webmanifest', 'utf8'));
+          const metadata = JSON.parse(fs.readFileSync('version.json', 'utf8'));
+          const update = fs.readFileSync('update.js', 'utf8');
+          const feedback = fs.readFileSync('beta-feedback.js', 'utf8');
+          const serviceWorker = fs.readFileSync('sw.js', 'utf8');
+          const version = metadata.version;
+          if (!version || !update.includes('APP_VERSION = "' + version + '"') ||
+              !feedback.includes("VERSION='" + version + "'") ||
+              !serviceWorker.includes('overload-shell-' + version) ||
+              !serviceWorker.includes('v' + version)) {
+            throw new Error('OVERLOAD release version is inconsistent across app metadata, update manager, feedback form and service worker.');
+          }
+          const queryVersions = [...html.matchAll(/[?&]v=([0-9.]+)/g)].map(match => match[1]);
+          if (queryVersions.some(value => value !== version)) {
+            throw new Error('A cache-busted app asset does not match version.json.');
+          }
+          const coreMatch = serviceWorker.match(/const CORE = \\[(.*?)\\];/s);
+          if (!coreMatch) throw new Error('Service-worker CORE asset list could not be parsed.');
+          const coreAssets = [...coreMatch[1].matchAll(/"([^"]+)"/g)].map(match => match[1]);
+          for (const asset of coreAssets) {
+            const localPath = asset.replace(/^\\.\\//, '');
+            if (localPath && !fs.existsSync(localPath)) throw new Error('Missing service-worker core asset: ' + asset);
+          }
+          for (const icon of manifest.icons || []) {
+            const localPath = icon.src.replace(/^\\.\\//, '');
+            if (!fs.existsSync(localPath)) throw new Error('Missing manifest icon: ' + icon.src);
+          }
+          console.log('Release metadata, cache-busted asset versions, service-worker core assets and manifest icons are consistent.');
           console.log(`Validated ${scripts.length} inline script blocks and PWA JSON metadata.`);
           NODE
       - name: Run coaching engine tests
