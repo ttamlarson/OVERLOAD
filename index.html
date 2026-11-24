@@ -460,6 +460,15 @@ input,select,textarea{max-width:100%;font-size:16px}
   <label class="row" style="align-items:flex-start;gap:10px;margin-top:12px"><input id="aiConsent" type="checkbox"><span class="small">I consent to sending a compact summary of my recent workouts and, where available, recovery and nutrition averages to OVERLOAD's AI service for this review. Individual food entries, full workout history and body measurements are not sent.</span></label>
   <button class="btn" id="aiGenerate" type="button" disabled>Generate AI review</button>
   <div id="aiCoachResult" class="section-content" aria-live="polite"></div>
+  <div class="divider" style="margin:16px 0"></div>
+  <h3>Ask your AI Coach</h3>
+  <p class="small">Ask a training question in your own words — for example, “How should I adjust my next session?” or “Why has my bench stalled?” The Coach uses a short recent-training summary where available.</p>
+  <div class="field"><label for="aiChatQuestion">What would you like help with?</label><textarea id="aiChatQuestion" rows="3" maxlength="700" placeholder="Ask about your training, exercise selection, progression or recovery…"></textarea></div>
+  <label class="row" style="align-items:flex-start;gap:10px;margin-top:10px"><input id="aiChatConsent" type="checkbox"><span class="small">I agree to send this question and a compact summary of my recent training to the AI service. Full workout history, individual food entries, private notes and measurements are not sent.</span></label>
+  <button class="btn" id="aiChatSend" type="button" disabled>Ask Coach</button>
+  <div class="notice" id="aiChatStatus" role="status">Your question stays on this device until you choose to send it.</div>
+  <div id="aiChatResult" class="section-content" aria-live="polite"></div>
+
   <details class="dash-section" id="aiProgrammeBuilder" style="margin-top:16px">
    <summary>Build a programme with AI <span class="small">PERSONALISED TRAINING PLAN</span></summary>
    <div class="section-content">
