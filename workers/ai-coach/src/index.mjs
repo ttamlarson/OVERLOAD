@@ -94,7 +94,8 @@ export function sanitiseRequest(input) {
 
 export function buildMessages(request) {
   const taskInstructions = {
-    coach_chat: "Answer the user’s specific training question conversationally and practically using the compact training summary only. If context is insufficient, ask one focused follow-up question. Do not diagnose injuries, prescribe rehabilitation, claim medical readiness, or invent personal records. Keep the answer concise and include up to three practical next steps.",\n    weekly_review: "Review the supplied training, recovery and nutrition summary. Identify a maximum of three useful patterns and up to three practical next steps. Do not infer fatigue, injury or readiness beyond the supplied data.",
+    coach_chat: "Answer the user’s specific training question conversationally and practically using the compact training summary only. If context is insufficient, ask one focused follow-up question. Do not diagnose injuries, prescribe rehabilitation, claim medical readiness, or invent personal records. Keep the answer concise and include up to three practical next steps.",
+    weekly_review: "Review the supplied training, recovery and nutrition summary. Identify a maximum of three useful patterns and up to three practical next steps. Do not infer fatigue, injury or readiness beyond the supplied data.",
     exercise_substitution: "Suggest up to three exercise substitutions for the named movement and available equipment. Explain the movement pattern and trade-offs. Do not diagnose pain or prescribe rehabilitation.",
     programme_explanation: "Explain the structure and likely training intent of the supplied programme. Highlight practical progression considerations without inventing sets, reps or exercises not supplied.",
     nutrition_pattern: "Review the supplied aggregate nutrition log. Identify consistency and gaps only where logged data supports them. Do not prescribe extreme restriction or claim medical effects.",
