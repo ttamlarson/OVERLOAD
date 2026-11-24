@@ -455,16 +455,16 @@ input,select,textarea{max-width:100%;font-size:16px}
   <div class="section-content" id="coachBrief"><div class="empty">Your coaching brief will appear here.</div></div>
   <div class="divider" style="margin:16px 0"></div>
   <h3>AI coaching review</h3>
+   <label class="row" style="align-items:flex-start;gap:10px;margin:12px 0"><input id="featureConsent" type="checkbox"><span class="small">Enable AI and camera features on this device. Your choice is saved so you do not need to consent again for each action. AI sends only the question, selected programme preferences or compact training summary described below. Barcode scanning uses your camera locally; the barcode may be sent to Open Food Facts for product lookup. You can turn this off here at any time.</span></label>
+   <div class="small" id="featureConsentStatus" role="status">AI and camera features are disabled until enabled.</div>
   <p class="small">Get a personalised review of your recent training, with practical suggestions for what to focus on next. A short summary is sent — not your full workout history or individual records.</p>
   <div class="notice" id="aiCoachStatus" role="status">AI coaching is not connected yet. Your records remain on this device.</div>
-  <label class="row" style="align-items:flex-start;gap:10px;margin-top:12px"><input id="aiConsent" type="checkbox"><span class="small">I consent to sending a compact summary of my recent workouts and, where available, recovery and nutrition averages to OVERLOAD's AI service for this review. Individual food entries, full workout history and body measurements are not sent.</span></label>
   <button class="btn" id="aiGenerate" type="button" disabled>Generate AI review</button>
   <div id="aiCoachResult" class="section-content" aria-live="polite"></div>
   <div class="divider" style="margin:16px 0"></div>
   <h3>Ask your AI Coach</h3>
   <p class="small">Ask a training question in your own words — for example, “How should I adjust my next session?” or “Why has my bench stalled?” The Coach uses a short recent-training summary where available.</p>
   <div class="field"><label for="aiChatQuestion">What would you like help with?</label><textarea id="aiChatQuestion" rows="3" maxlength="700" placeholder="Ask about your training, exercise selection, progression or recovery…"></textarea></div>
-  <label class="row" style="align-items:flex-start;gap:10px;margin-top:10px"><input id="aiChatConsent" type="checkbox"><span class="small">I agree to send this question and a compact summary of my recent training to the AI service. Full workout history, individual food entries, private notes and measurements are not sent.</span></label>
   <button class="btn" id="aiChatSend" type="button" disabled>Ask Coach</button>
   <div class="notice" id="aiChatStatus" role="status">Your question stays on this device until you choose to send it.</div>
   <div id="aiChatResult" class="section-content" aria-live="polite"></div>
@@ -490,7 +490,6 @@ input,select,textarea{max-width:100%;font-size:16px}
     </div>
     <div class="field" style="margin-top:10px"><label>Available equipment</label><input id="aiProgramEquipment" maxlength="220" value="Barbell, dumbbells, bench, cable machine, squat rack" placeholder="e.g. Barbell, dumbbells, machines"><div class="small">Separate items with commas. Only this list and your choices above are sent.</div></div>
     <div class="notice" style="margin-top:12px">Your workout history, food log, recovery notes and measurements are not sent for programme generation.</div>
-    <label class="row" style="align-items:flex-start;gap:10px;margin-top:12px"><input id="aiProgramConsent" type="checkbox"><span class="small">I agree to send the programme preferences shown above to the AI service to create this plan.</span></label>
     <button class="btn" id="aiProgramGenerate" type="button" disabled>Create my programme</button>
     <div id="aiProgramStatus" class="notice" role="status">Complete your preferences and give consent to generate a programme.</div>
     <div id="aiProgramResult" aria-live="polite"></div>
@@ -688,7 +687,7 @@ input,select,textarea{max-width:100%;font-size:16px}
 <script src="./personal-records.js?v=5.14.8"></script>
 <script src="./programme-templates.js?v=5.14.8"></script>
 <script src="./backup-validation.js?v=5.14.8"></script>
-<script src="./ai-coach-client.js?v=5.14.9"></script>
+<script src="./ai-coach-client.js?v=5.15.0"></script>
 <script>
 (() => {
 'use strict';
@@ -1169,10 +1168,12 @@ function renderCoach(){
  $('coachLoad').innerHTML='<div class="grid two"><div class="stat"><div class="small">LAST 7 DAYS</div><div class="metric">'+report.last7+'</div><div class="small">workouts logged</div></div><div class="stat"><div class="small">PREVIOUS 7 DAYS</div><div class="metric">'+report.previous7+'</div><div class="small">workouts logged</div></div><div class="stat"><div class="small">WORKING SETS · 7 DAYS</div><div class="metric">'+report.last7Volume.workingSets+'</div><div class="small">sets with logged weight and reps</div></div><div class="stat"><div class="small">VOLUME · 7 DAYS</div><div class="metric">'+Math.round(report.last7Volume.tonnage).toLocaleString()+' kg</div><div class="small">logged load × reps (tonnage)</div></div></div><p class="small">Tonnage is a simple training-volume measure, not a direct measure of fatigue or physiological stress. Compare trends alongside recovery and performance.</p>';
 }
  const aiReady=!!(window.OverloadAI&&window.OverloadAI.endpoint());
- $('aiCoachStatus').textContent=aiReady?'Secure AI coaching endpoint configured. Choose a task and consent before sending preferences.':'AI coaching is not connected yet. Your records remain on this device.';
- $('aiConsent').disabled=!aiReady;
- $('aiGenerate').disabled=!aiReady||!$('aiConsent').checked;
- $('aiProgramGenerate').disabled=!aiReady||!$('aiProgramConsent').checked;
+ $('featureConsent').checked=!!state.settings.featureConsent;
+ $('featureConsentStatus').textContent=state.settings.featureConsent?'AI and camera features enabled on this device. You can revoke access here.':'AI and camera features are disabled until enabled.';
+ $('aiCoachStatus').textContent=aiReady?(state.settings.featureConsent?'AI coaching is ready. Your consent is saved on this device.':'Enable AI and camera features above to use AI coaching.'):'AI coaching is not connected yet. Your records remain on this device.';
+ $('aiGenerate').disabled=!aiReady||!state.settings.featureConsent;
+ $('aiChatSend').disabled=!aiReady||!state.settings.featureConsent||$('aiChatQuestion').value.trim().length<3;
+ $('aiProgramGenerate').disabled=!aiReady||!state.settings.featureConsent;
 
 
 function renderHome(){
@@ -1578,12 +1579,19 @@ function downloadBackup(filename,source=state){
  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
  window.setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
-$('aiConsent').onchange=()=>{
- $('aiGenerate').disabled=!window.OverloadAI.endpoint()||!$('aiConsent').checked;
+$('featureConsent').onchange=()=>{
+ state.settings.featureConsent=$('featureConsent').checked;
+ persist();
+ const enabled=state.settings.featureConsent;
+ $('featureConsentStatus').textContent=enabled?'AI and camera features enabled on this device. You can revoke access here.':'AI and camera features disabled. AI requests and barcode scanning are blocked.';
+ $('aiCoachStatus').textContent=enabled?'Consent saved. AI coaching is ready when the service is connected.':'Enable AI and camera features above to use AI coaching.';
+ $('aiGenerate').disabled=!enabled||!window.OverloadAI.endpoint();
+ $('aiChatSend').disabled=!enabled||!window.OverloadAI.endpoint()||$('aiChatQuestion').value.trim().length<3;
+ $('aiProgramGenerate').disabled=!enabled||!window.OverloadAI.endpoint();
 };
 $('aiGenerate').onclick=async()=>{
  const button=$('aiGenerate'),status=$('aiCoachStatus'),output=$('aiCoachResult');
- if(!$('aiConsent').checked)return;
+ if(!state.settings.featureConsent)return;
  button.disabled=true;status.textContent='Preparing your review and sending the compact summary securely…';output.textContent='';
  try{
   // Build a fresh summary at the moment the user requests the review.
@@ -1593,18 +1601,15 @@ $('aiGenerate').onclick=async()=>{
   output.innerHTML='<div class="listitem"><strong>'+esc(result.title||'AI coaching review')+'</strong><p>'+esc(result.summary)+'</p></div>'+result.suggestions.map(item=>'<div class="listitem">'+esc(item)+'</div>').join('')+(result.dataUsed?.length?'<p class="small"><strong>Based on:</strong> '+result.dataUsed.map(esc).join(' · ')+'</p>':'')+(result.limitations?.length?'<p class="small"><strong>Limitations:</strong> '+result.limitations.map(esc).join(' · ')+'</p>':'')+'<p class="small">'+esc(result.disclaimer||'AI suggestions are not medical advice.')+'</p>';
   status.textContent='Review complete. No app records were changed.';
  }catch(error){status.textContent=error.message||'AI coaching is unavailable.'}
- finally{$('aiConsent').checked=false;aiPreviewSnapshot=null;button.disabled=true}
+ finally{aiPreviewSnapshot=null;button.disabled=!state.settings.featureConsent}
 };
 $('aiChatQuestion').addEventListener('input',()=>{
- $('aiChatSend').disabled=!window.OverloadAI.endpoint()||!$('aiChatConsent').checked||$('aiChatQuestion').value.trim().length<3;
+ $('aiChatSend').disabled=!window.OverloadAI.endpoint()||!state.settings.featureConsent||$('aiChatQuestion').value.trim().length<3;
 });
-$('aiChatConsent').onchange=()=>{
- $('aiChatSend').disabled=!window.OverloadAI.endpoint()||!$('aiChatConsent').checked||$('aiChatQuestion').value.trim().length<3;
-};
 $('aiChatSend').onclick=async()=>{
  const button=$('aiChatSend'),status=$('aiChatStatus'),output=$('aiChatResult');
  const question=$('aiChatQuestion').value.trim();
- if(!$('aiChatConsent').checked||question.length<3)return;
+ if(!state.settings.featureConsent||question.length<3)return;
  button.disabled=true;status.textContent='Preparing a short training summary and contacting your AI Coach…';output.textContent='';
  try{
   const snapshot=window.OverloadAI.buildWeeklyReview(state,today());
@@ -1619,10 +1624,10 @@ $('aiChatSend').onclick=async()=>{
   const disclaimer=document.createElement('p');disclaimer.className='small';disclaimer.textContent=result.disclaimer;output.append(disclaimer);
   status.textContent='Coach response received. No app records or programmes were changed.';
  }catch(error){status.textContent=error.message||'AI Coach is temporarily unavailable.'}
- finally{$('aiChatConsent').checked=false;$('aiChatSend').disabled=true}
+ finally{$('aiChatSend').disabled=!state.settings.featureConsent||question.length<3}
 };
 let pendingAIProgramme=null;
-$('aiProgramConsent').onchange=()=>{$('aiProgramGenerate').disabled=!window.OverloadAI.endpoint()||!$('aiProgramConsent').checked};
+
 document.querySelectorAll('[data-ai-preset]').forEach(button=>button.addEventListener('click',()=>{
  const presets={
   '3day':{days:3,split:'Full body',goal:'Build muscle and strength',minutes:60},
@@ -1637,7 +1642,7 @@ document.querySelectorAll('[data-ai-preset]').forEach(button=>button.addEventLis
 }));
 $('aiProgramGenerate').onclick=async()=>{
  const button=$('aiProgramGenerate'),status=$('aiProgramStatus'),output=$('aiProgramResult');
- if(!$('aiProgramConsent').checked)return;
+ if(!state.settings.featureConsent)return;
  button.disabled=true;status.textContent='Generating a programme from your preferences…';output.innerHTML='';pendingAIProgramme=null;
  const equipment=$('aiProgramEquipment').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,10);
  const context={goal:$('aiProgramGoal').value,focus:$('aiProgramFocus').value.trim(),daysPerWeek:Number($('aiProgramDays').value),sessionMinutes:Number($('aiProgramMinutes').value),trainingLevel:$('aiProgramLevel').value,splitPreference:$('aiProgramSplit').value,equipment};
@@ -1658,7 +1663,7 @@ $('aiProgramGenerate').onclick=async()=>{
   $('aiProgramDiscard').onclick=()=>{pendingAIProgramme=null;output.innerHTML='';status.textContent='Draft discarded. No programme was saved.'};
   status.textContent='Draft ready. Review the exercises and save it when you are happy with the plan.';
  }catch(error){status.textContent=error.message||'AI programme generation is unavailable.'}
- finally{$('aiProgramConsent').checked=false;button.disabled=true}
+ finally{button.disabled=!state.settings.featureConsent}
 };
 $('export').onclick=()=>downloadBackup('overload-backup-'+today()+'.json');
 $('import').onchange=async e=>{
@@ -1719,7 +1724,7 @@ $('foodlib').onchange=()=>{
  toast('Food loaded — adjust if needed then tap Add food');
 };
 
-$('lookupBarcode').onclick=()=>lookupBarcode($('fbarcode').value);
+$('lookupBarcode').onclick=()=>{if(!state.settings.featureConsent){toast('Enable AI and camera features in Coach first');return}lookupBarcode($('fbarcode').value)};
 $('fbarcode').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); lookupBarcode($('fbarcode').value); }});
 $('scanBarcode').onclick=()=>startScanner();
 $('closeScanner').onclick=()=>stopScanner();
