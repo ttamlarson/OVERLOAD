@@ -1,6 +1,6 @@
 {
   "app": "OVERLOAD",
-  "version": "5.14.6",
+  "version": "5.14.7",
   "releaseDate": "2026-11-24",
-  "notes": "Streamlines the five-destination navigation, consolidates programmes under Training, and groups secondary tools into collapsible panels without changing stored records."
+  "notes": "Adds consent-based AI programme generation with structured programme validation and save-to-library review flow."
 }
