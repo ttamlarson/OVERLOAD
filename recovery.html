@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<title>OVERLOAD · Workout Recovery Check</title>
+<style>
+:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#08090b;color:#f3f4f6}
+*{box-sizing:border-box}body{margin:0;padding:24px 18px 48px;max-width:720px;margin-inline:auto}
+header{padding:18px 0 24px;border-bottom:1px solid #30343a} .eyebrow{font-size:11px;letter-spacing:.18em;color:#9ca3af;font-weight:700}
+h1{font-size:27px;letter-spacing:-.04em;margin:8px 0}p{color:#c4c8ce;line-height:1.55}
+.panel{background:#14171b;border:1px solid #30343a;border-radius:14px;padding:16px;margin:16px 0}
+.status{font-weight:700;font-size:17px;margin:0 0 8px}.muted{color:#9ca3af;font-size:13px}
+button{width:100%;border:0;border-radius:10px;padding:15px 16px;font-size:15px;font-weight:750;background:#f3f4f6;color:#090a0b;margin-top:10px}
+button.secondary{background:#292e35;color:#f3f4f6}button:disabled{opacity:.5}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,monospace;color:#d1d5db;background:#0b0d10;padding:12px;border-radius:9px}
+.warn{border-color:#735c2a}.ok{color:#a7e0b4}.bad{color:#ffb4a9}
+</style></head>
+<body>
+<header><div class="eyebrow">OVERLOAD / DATA INTEGRITY</div><h1>Workout recovery check</h1><p>This check only reads browser storage. It does not edit, delete, reset, or restore anything.</p></header>
+<section class="panel warn"><p class="status">Before you continue</p><p class="muted">Open this page from the same OVERLOAD Home Screen app context if possible. Do not uninstall the app, clear website data, or reset anything. The report may contain private training and app records; only share the downloaded file with someone you trust.</p></section>
+<section class="panel"><p class="status" id="status">Ready to inspect this browser storage</p><p class="muted" id="summary">No data has been changed.</p><button id="scan">Run read-only recovery check</button><button id="export" class="secondary" disabled>Export recovery report</button></section>
+<section class="panel"><p class="status">Diagnostic details</p><pre id="details">Waiting for scan…</pre></section>
+<script>
+(() => {
+ const $=id=>document.getElementById(id);
+ let report=null;
+ const workoutNames=/workout|training|session|history|exercise|apex|corv|overload|backup|data/i;
+ function inspect(value,path,depth=0,found=[]){
+   if(depth>7||value==null)return found;
+   if(Array.isArray(value)){if(value.length&&value.some(x=>x&&typeof x==='object'&&('exercises'in x||'date'in x||'type'in x)))found.push({path,count:value.length,sampleKeys:Object.keys(value[0]||{}).slice(0,12)});value.slice(0,100).forEach((v,i)=>inspect(v,path+'['+i+']',depth+1,found));return found}
+   if(typeof value==='object'){for(const [k,v] of Object.entries(value)){if(/workouts?|trainingHistory|workoutHistory|sessions/i.test(k)&&Array.isArray(v))found.push({path:path+'.'+k,count:v.length,sampleKeys:Object.keys(v[0]||{}).slice(0,12)});if(v&&typeof v==='object')inspect(v,path+'.'+k,depth+1,found)}}
+   return found;
+ }
+ $('scan').addEventListener('click',()=>{
+  const keys=[];const candidates=[];const errors=[];
+  try{
+   for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);if(!key)continue;
+    const raw=localStorage.getItem(key);let parsed=null,validJson=false;
+    try{parsed=JSON.parse(raw);validJson=true}catch(e){}
+    const item={key,characters:raw?.length??0,json:validJson};
+    if(validJson&&parsed&&typeof parsed==='object'){
+      const arrays=inspect(parsed,key);
+      if(arrays.length)candidates.push({key,arrays});
+      if(key==='apexProtocolData_v1'){
+       item.topLevelKeys=Object.keys(parsed);
+       item.workoutsField=Array.isArray(parsed.workouts)?'array ('+parsed.workouts.length+')':(parsed.workouts===undefined?'missing':typeof parsed.workouts);
+       item.otherRecordCounts={foods:Array.isArray(parsed.foods)?parsed.foods.length:null,measurements:Array.isArray(parsed.measurements)?parsed.measurements.length:null,cardio:Array.isArray(parsed.cardio)?parsed.cardio.length:null};
+      }
+    }
+    keys.push(item);
+   }
+  }catch(e){errors.push('localStorage read failed: '+String(e))}
+  const main=keys.find(x=>x.key==='apexProtocolData_v1');
+  report={checkedAt:new Date().toISOString(),origin:location.origin,storageKeyCount:keys.length,keys,candidates,errors};
+  $('status').textContent=main?(main.workoutsField==='array (0)'?'Main app record found; workout array is empty.':'Main app record found; inspect details below.'):'Main app storage key was not found in this browser context.';
+  $('status').className='status '+(main?'':'bad');
+  $('summary').textContent='Read '+keys.length+' storage key(s). No values were changed. '+(candidates.length?'Potential workout arrays found: '+candidates.length+'.':'No likely workout arrays found in readable JSON records.');
+  $('details').textContent=JSON.stringify(report,null,2);
+  $('export').disabled=false;
+ });
+ $('export').addEventListener('click',()=>{
+  if(!report)return;
+  const payload={...report,notice:'Read-only diagnostic. No storage values were changed.'};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='overload-recovery-report.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ });
+})();
+</script></body></html>
