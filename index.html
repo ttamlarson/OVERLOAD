@@ -1140,7 +1140,7 @@ function renderCoach(){
  const aiReady=!!(window.OverloadAI&&window.OverloadAI.endpoint());
  $('aiCoachStatus').textContent=aiReady?'Secure AI coaching endpoint configured. Preview the summary before choosing whether to send it.':'AI coaching is not connected yet. Your records remain on this device.';
  $('aiConsent').disabled=!aiReady;
- $('aiGenerate').disabled=!aiReady||!$('aiConsent').checked;
+ $('aiGenerate').disabled=!aiReady||!$('aiConsent').checked||!aiPreviewSnapshot;
 
 
 function renderHome(){
@@ -1534,24 +1534,24 @@ function downloadBackup(filename,source=state){
  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
  window.setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
+let aiPreviewSnapshot=null;
 $('aiPreviewButton').onclick=()=>{
- const preview=window.OverloadAI.buildWeeklyReview(state,today());
- $('aiDataPreview').textContent=JSON.stringify({task:preview.task,context:preview.context},null,2);
+ aiPreviewSnapshot=window.OverloadAI.buildWeeklyReview(state,today());
+ $('aiDataPreview').textContent=JSON.stringify({task:aiPreviewSnapshot.task,context:aiPreviewSnapshot.context},null,2);
  $('aiDataPreview').hidden=!$('aiDataPreview').hidden;
  $('aiPreviewButton').textContent=$('aiDataPreview').hidden?'Preview data to be sent':'Hide data preview';
 };
-$('aiConsent').onchange=()=>{$('aiGenerate').disabled=!window.OverloadAI.endpoint()||!$('aiConsent').checked};
+$('aiConsent').onchange=()=>{$('aiGenerate').disabled=!window.OverloadAI.endpoint()||!aiPreviewSnapshot||!$('aiConsent').checked};
 $('aiGenerate').onclick=async()=>{
  const button=$('aiGenerate'),status=$('aiCoachStatus'),output=$('aiCoachResult');
- if(!$('aiConsent').checked)return;
+ if(!$('aiConsent').checked||!aiPreviewSnapshot)return;
  button.disabled=true;status.textContent='Sending the reviewed summary securely…';output.textContent='';
  try{
-  const preview=window.OverloadAI.buildWeeklyReview(state,today());
-  const result=await window.OverloadAI.requestWeeklyReview(preview.context,true);
+  const result=await window.OverloadAI.requestWeeklyReview(aiPreviewSnapshot.context,true);
   output.innerHTML='<div class="listitem"><strong>'+esc(result.title||'AI coaching review')+'</strong><p>'+esc(result.summary)+'</p></div>'+result.suggestions.map(item=>'<div class="listitem">'+esc(item)+'</div>').join('')+(result.limitations?.length?'<p class="small">'+result.limitations.map(esc).join(' · ')+'</p>':'')+'<p class="small">'+esc(result.disclaimer||'AI suggestions are not medical advice.')+'</p>';
   status.textContent='Review complete. No app records were changed.';
  }catch(error){status.textContent=error.message||'AI coaching is unavailable.'}
- finally{button.disabled=!window.OverloadAI.endpoint()||!$('aiConsent').checked}
+ finally{$('aiConsent').checked=false;aiPreviewSnapshot=null;button.disabled=true}
 };
 $('export').onclick=()=>downloadBackup('overload-backup-'+today()+'.json');
 $('import').onchange=async e=>{
