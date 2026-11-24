@@ -60,5 +60,5 @@ jobs:
           console.log('Release metadata, cache-busted asset versions, service-worker core assets and manifest icons are consistent.');
           console.log(`Validated ${scripts.length} inline script blocks and PWA JSON metadata.`);
           NODE
-      - name: Run coaching engine tests
-        run: node --test tests/coach-engine.test.js tests/muscle-map.test.js tests/personal-records.test.js tests/programme-templates.test.js
+      - name: Run coaching engine and AI API tests
+        run: node --test tests/coach-engine.test.js tests/muscle-map.test.js tests/personal-records.test.js tests/programme-templates.test.js workers/ai-coach/test/worker.test.mjs
