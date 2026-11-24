@@ -1,6 +1,6 @@
 {
   "app": "OVERLOAD",
-  "version": "5.14.4",
+  "version": "5.14.5",
   "releaseDate": "2026-11-24",
-  "notes": "Adds optional AI coaching review UI with explicit data preview and per-request consent; keeps the service disconnected until a protected Cloudflare endpoint is configured."
+  "notes": "Hardens AI review data minimisation, excludes stale recovery check-ins, validates model response structure and displays data-used context; service remains disconnected until protected Cloudflare configuration."
 }
