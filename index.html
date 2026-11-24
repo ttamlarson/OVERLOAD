@@ -5,9 +5,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<link rel="manifest" href="./manifest.webmanifest?v=5.14.3">
-<link rel="icon" href="./overload-mark.svg?v=5.14.3" type="image/svg+xml">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.14.3">
+<link rel="manifest" href="./manifest.webmanifest?v=5.14.4">
+<link rel="icon" href="./overload-mark.svg?v=5.14.4" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.14.4">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OVERLOAD">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -459,6 +459,18 @@ input,select,textarea{max-width:100%;font-size:16px}
  <details class="dash-section" open><summary>Today's coaching brief <span class="small">BASED ON YOUR LOGS</span></summary><div class="section-content" id="coachBrief"><div class="empty">Your coaching brief will appear here.</div></div></details>
  <details class="dash-section" open><summary>Training load <span class="small">ROLLING 7-DAY VIEW</span></summary><div class="section-content" id="coachLoad"><div class="empty">Log workouts to build your training-load view.</div></div></details>
  <details class="dash-section"><summary>Nutrition check <span class="small">TODAY'S INTAKE</span></summary><div class="section-content" id="coachNutrition"><div class="empty">Your nutrition summary will appear here.</div></div></details>
+ <div class="card" id="aiCoachCard">
+  <div class="dashboard-kicker">OPTIONAL CLOUD SERVICE</div>
+  <h3>AI coaching review</h3>
+  <p class="small">Get a second-pass review of a compact training summary. Your full workout history, recovery notes, individual food entries and body measurements are not sent.</p>
+  <div class="notice" id="aiCoachStatus" role="status">AI coaching is not connected yet. Your records remain on this device.</div>
+  <div class="row"><button class="btn secondary" id="aiPreviewButton" type="button">Preview data to be sent</button></div>
+  <pre class="small" id="aiDataPreview" hidden style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow:auto"></pre>
+  <label class="row" style="align-items:flex-start;gap:10px;margin-top:12px"><input id="aiConsent" type="checkbox" disabled><span class="small">I have reviewed the preview and consent to sending this summary to the OVERLOAD AI coaching service for this review. This is optional and is not required to use the app.</span></label>
+  <button class="btn" id="aiGenerate" type="button" disabled>Generate AI review</button>
+  <div id="aiCoachResult" class="section-content" aria-live="polite"></div>
+  <p class="small">AI suggestions are informational, may be inaccurate and are not medical advice. They never change your programme or records.</p>
+ </div>
  <div class="notice">Coaching beta: these are transparent, rules-based suggestions from your own logs, not medical advice or a diagnosis. The AI coaching layer and cloud-synced history will be added as separate, permission-based services.</div>
 </section>
 
@@ -638,11 +650,12 @@ input,select,textarea{max-width:100%;font-size:16px}
 <div id="toast" class="hidden" role="status"></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="./muscle-map.js?v=5.14.3"></script>
+<script src="./muscle-map.js?v=5.14.4"></script>
 <script src="./coach-engine.js"></script>
-<script src="./personal-records.js?v=5.14.3"></script>
-<script src="./programme-templates.js?v=5.14.3"></script>
-<script src="./backup-validation.js?v=5.14.3"></script>
+<script src="./personal-records.js?v=5.14.4"></script>
+<script src="./programme-templates.js?v=5.14.4"></script>
+<script src="./backup-validation.js?v=5.14.4"></script>
+<script src="./ai-coach-client.js?v=5.14.4"></script>
 <script>
 (() => {
 'use strict';
@@ -1123,6 +1136,11 @@ function renderCoach(){
  $('coachLoad').innerHTML='<div class="grid two"><div class="stat"><div class="small">LAST 7 DAYS</div><div class="metric">'+report.last7+'</div><div class="small">workouts logged</div></div><div class="stat"><div class="small">PREVIOUS 7 DAYS</div><div class="metric">'+report.previous7+'</div><div class="small">workouts logged</div></div><div class="stat"><div class="small">WORKING SETS · 7 DAYS</div><div class="metric">'+report.last7Volume.workingSets+'</div><div class="small">sets with logged weight and reps</div></div><div class="stat"><div class="small">VOLUME · 7 DAYS</div><div class="metric">'+Math.round(report.last7Volume.tonnage).toLocaleString()+' kg</div><div class="small">logged load × reps (tonnage)</div></div></div><p class="small">Tonnage is a simple training-volume measure, not a direct measure of fatigue or physiological stress. Compare trends alongside recovery and performance.</p>';
  $('coachNutrition').innerHTML='<div class="grid two"><div class="stat"><div class="small">ENERGY</div><div class="metric">'+Math.round(report.intake.calories)+' / '+report.calorieTarget+'</div><div class="small">'+report.caloriePercent+'% of daily target</div></div><div class="stat"><div class="small">PROTEIN</div><div class="metric">'+Math.round(report.intake.protein)+' / '+report.proteinTarget+' g</div><div class="small">'+report.proteinPercent+'% of daily target</div></div></div><div class="notice">Nutrition totals only include foods recorded for today. Missing entries are not treated as zero intake.</div><button class="btn secondary" data-go="nutrition">Open food log</button>';
 }
+ const aiReady=!!(window.OverloadAI&&window.OverloadAI.endpoint());
+ $('aiCoachStatus').textContent=aiReady?'Secure AI coaching endpoint configured. Preview the summary before choosing whether to send it.':'AI coaching is not connected yet. Your records remain on this device.';
+ $('aiConsent').disabled=!aiReady;
+ $('aiGenerate').disabled=!aiReady||!$('aiConsent').checked;
+
 
 function renderHome(){
  const t=totals(today()),c=n(state.settings.calories),p=n(state.settings.protein);
@@ -1515,6 +1533,25 @@ function downloadBackup(filename,source=state){
  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
  window.setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
+$('aiPreviewButton').onclick=()=>{
+ const preview=window.OverloadAI.buildWeeklyReview(state,today());
+ $('aiDataPreview').textContent=JSON.stringify({task:preview.task,context:preview.context},null,2);
+ $('aiDataPreview').hidden=!$('aiDataPreview').hidden;
+ $('aiPreviewButton').textContent=$('aiDataPreview').hidden?'Preview data to be sent':'Hide data preview';
+};
+$('aiConsent').onchange=()=>{$('aiGenerate').disabled=!window.OverloadAI.endpoint()||!$('aiConsent').checked};
+$('aiGenerate').onclick=async()=>{
+ const button=$('aiGenerate'),status=$('aiCoachStatus'),output=$('aiCoachResult');
+ if(!$('aiConsent').checked)return;
+ button.disabled=true;status.textContent='Sending the reviewed summary securely…';output.textContent='';
+ try{
+  const preview=window.OverloadAI.buildWeeklyReview(state,today());
+  const result=await window.OverloadAI.requestWeeklyReview(preview.context,true);
+  output.innerHTML='<div class="listitem"><strong>'+esc(result.title||'AI coaching review')+'</strong><p>'+esc(result.summary)+'</p></div>'+result.suggestions.map(item=>'<div class="listitem">'+esc(item)+'</div>').join('')+(result.limitations?.length?'<p class="small">'+result.limitations.map(esc).join(' · ')+'</p>':'')+'<p class="small">'+esc(result.disclaimer||'AI suggestions are not medical advice.')+'</p>';
+  status.textContent='Review complete. No app records were changed.';
+ }catch(error){status.textContent=error.message||'AI coaching is unavailable.'}
+ finally{button.disabled=!window.OverloadAI.endpoint()||!$('aiConsent').checked}
+};
 $('export').onclick=()=>downloadBackup('overload-backup-'+today()+'.json');
 $('import').onchange=async e=>{
  const f=e.target.files[0];if(!f)return;
@@ -1677,7 +1714,7 @@ if(state.current.exercises.length)renderExercises();else setPlan(state.current.t
 render();
 })();
 </script>
-<script src="./beta-feedback.js?v=5.14.3"></script>
+<script src="./beta-feedback.js?v=5.14.4"></script>
 <script src="./update.js"></script>
 <script>
 if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {
