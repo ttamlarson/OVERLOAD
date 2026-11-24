@@ -136,6 +136,7 @@ export async function handleRequest(request, env) {
   if (!allowedOrigin || origin !== allowedOrigin) return json({ error: "Origin not allowed." }, 403);
   const cors = { "access-control-allow-origin": allowedOrigin, "vary": "Origin" };
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { ...cors, "access-control-allow-methods": "POST, OPTIONS", "access-control-allow-headers": "content-type, authorization", "access-control-max-age": "600" } });
+  if (new URL(request.url).pathname !== "/v1/coach") return json({ error: "Not found." }, 404, cors);
   if (request.method !== "POST") return json({ error: "Method not allowed." }, 405, cors);
   if (env.AI_ENABLED !== "true") return json({ error: "AI coaching is not enabled yet." }, 503, cors);
   const length = Number(request.headers.get("content-length") || 0);
@@ -173,7 +174,12 @@ export async function handleRequest(request, env) {
     let parsed;
     try { parsed = validateModelResponse(JSON.parse(content)); } catch { parsed = null; }
     if (!parsed) return json({ error: "AI response did not meet the required format." }, 502, cors);
-    return json({ result: parsed, requestId: crypto.randomUUID() }, 200, cors);
+    const usage = payload?.usage && typeof payload.usage === "object" ? {
+      promptTokens: numeric(payload.usage.prompt_tokens),
+      completionTokens: numeric(payload.usage.completion_tokens),
+      totalTokens: numeric(payload.usage.total_tokens)
+    } : null;
+    return json({ result: parsed, usage, requestId: crypto.randomUUID() }, 200, cors);
   } catch {
     return json({ error: "AI coaching timed out or is temporarily unavailable." }, 502, cors);
   }
