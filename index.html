@@ -446,13 +446,16 @@ input,select,textarea{max-width:100%;font-size:16px}
   <div class="card"><div class="small">READINESS INDICATOR</div><div class="metric" id="coachReadiness">—</div><div class="small" id="coachReadinessLabel">Log a recovery check-in to establish a baseline.</div><div class="bar"><span id="coachReadinessBar"></span></div></div>
   <div class="card"><div class="small">TRAINING FREQUENCY</div><div class="metric" id="coachSessions">—</div><div class="small" id="coachSessionsLabel">Sessions in the last 7 days</div></div>
  </div>
- <details class="dash-section" open><summary>Today's coaching brief <span class="small">BASED ON YOUR LOGS</span></summary><div class="section-content" id="coachBrief"><div class="empty">Your coaching brief will appear here.</div></div></details>
+
  <details class="dash-section" open><summary>Training load <span class="small">ROLLING 7-DAY VIEW</span></summary><div class="section-content" id="coachLoad"><div class="empty">Log workouts to build your training-load view.</div></div></details>
  <details class="dash-section"><summary>Nutrition check <span class="small">TODAY'S INTAKE</span></summary><div class="section-content" id="coachNutrition"><div class="empty">Your nutrition summary will appear here.</div></div></details>
  <div class="card" id="aiCoachCard">
-  <div class="dashboard-kicker">OPTIONAL CLOUD SERVICE</div>
+  <div class="dashboard-kicker">DAILY COACHING / AI ASSISTANT</div>
+  <h3>Your coaching brief</h3>
+  <div class="section-content" id="coachBrief"><div class="empty">Your coaching brief will appear here.</div></div>
+  <div class="divider" style="margin:16px 0"></div>
   <h3>AI coaching review</h3>
-  <p class="small">Get a second-pass review of a compact training summary. Your full workout history, recovery notes, individual food entries and body measurements are not sent.</p>
+  <p class="small">Ask AI to build on your daily brief with a second-pass review of a compact training summary. Your full workout history, recovery notes, individual food entries and body measurements are not sent.</p>
   <div class="notice" id="aiCoachStatus" role="status">AI coaching is not connected yet. Your records remain on this device.</div>
   <label class="row" style="align-items:flex-start;gap:10px;margin-top:12px"><input id="aiConsent" type="checkbox"><span class="small">I consent to sending a compact summary of my recent workouts and, where available, recovery and nutrition averages to OVERLOAD's AI service for this review. Individual food entries, full workout history and body measurements are not sent.</span></label>
   <button class="btn" id="aiGenerate" type="button" disabled>Generate AI review</button>
