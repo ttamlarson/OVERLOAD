@@ -465,8 +465,6 @@ input,select,textarea{max-width:100%;font-size:16px}
   <h3>AI coaching review</h3>
   <p class="small">Get a second-pass review of a compact training summary. Your full workout history, recovery notes, individual food entries and body measurements are not sent.</p>
   <div class="notice" id="aiCoachStatus" role="status">AI coaching is not connected yet. Your records remain on this device.</div>
-  <div class="row"><button class="btn secondary" id="aiPreviewButton" type="button">Optional: preview data to be sent</button></div>
-  <pre class="small" id="aiDataPreview" hidden style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow:auto"></pre>
   <label class="row" style="align-items:flex-start;gap:10px;margin-top:12px"><input id="aiConsent" type="checkbox"><span class="small">I consent to sending a compact summary of my recent workouts and, where available, recovery and nutrition averages to OVERLOAD's AI service for this review. Individual food entries, full workout history and body measurements are not sent.</span></label>
   <button class="btn" id="aiGenerate" type="button" disabled>Generate AI review</button>
   <div id="aiCoachResult" class="section-content" aria-live="polite"></div>
@@ -1534,13 +1532,6 @@ function downloadBackup(filename,source=state){
  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
  window.setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
-let aiPreviewSnapshot=null;
-$('aiPreviewButton').onclick=()=>{
- aiPreviewSnapshot=window.OverloadAI.buildWeeklyReview(state,today());
- $('aiDataPreview').textContent=JSON.stringify({task:aiPreviewSnapshot.task,context:aiPreviewSnapshot.context},null,2);
- $('aiDataPreview').hidden=!$('aiDataPreview').hidden;
- $('aiPreviewButton').textContent=$('aiDataPreview').hidden?'Optional: preview data to be sent':'Hide data preview';
-};
 $('aiConsent').onchange=()=>{
  $('aiGenerate').disabled=!window.OverloadAI.endpoint()||!$('aiConsent').checked;
 };
