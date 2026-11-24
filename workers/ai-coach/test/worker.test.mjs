@@ -75,3 +75,22 @@ test("rejects invalid Access assertions before invoking rate limiting", async ()
   const response = await handleRequest(new Request("https://api.example/v1/coach", { method: "POST", headers: { Origin: "https://app.example", "cf-access-jwt-assertion": "not-a-valid-token" }, body: "{}" }), { OVERLOAD_ALLOWED_ORIGIN: "https://app.example", AI_ENABLED: "true" });
   assert.equal(response.status, 401);
 });
+
+
+test("rejects impossible calendar dates instead of forwarding them", () => {
+  const result = sanitiseRequest({ task: "weekly_review", consent: true, context: {
+    workouts: [
+      { date: "2026-11-24", label: "Valid", workingSets: 12 },
+      { date: "2026-19-42", label: "Impossible", workingSets: 9 }
+    ],
+    recovery: { date: "2026-02-30", sleepHours: 6 }
+  }});
+  assert.equal(result.context.workouts[0].date, "2026-11-24");
+  assert.equal(result.context.workouts[1].date, null);
+  assert.equal(result.context.latestRecovery.date, null);
+});
+
+test("marks supplied context as untrusted data in the model instruction", () => {
+  const safe = sanitiseRequest({ task: "weekly_review", consent: true, context: { goal: "Strength" } });
+  assert.match(buildMessages(safe)[0].content, /untrusted data/);
+});
