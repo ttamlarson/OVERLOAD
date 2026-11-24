@@ -1,7 +1,7 @@
 # OVERLOAD data protection, backup and installation audit
 
-**Audited release:** 5.10.0  
-**Remediation release:** 5.11.0  
+**Source-reviewed release:** 5.14.2  
+**Remediation included:** 5.14.2 (offline icon caching and release consistency checks)  
 **Architecture:** static GitHub Pages PWA; local-first browser storage; no user accounts or automatic cloud sync.
 
 ## Executive summary
@@ -69,7 +69,7 @@ Never test restore over a user's only copy of real records. Use a separate test 
 2. Use the install icon in the address bar or browser menu → Install OVERLOAD.
 3. Launch from the installed app shortcut. The browser tab remains a supported fallback.
 
-## Release verification checklist
+## 5.14.2 source review update\n\n- The service-worker precache now includes the 192 px and 512 px PNG icons referenced by the web app manifest, alongside the Apple touch icon.\n- The validation workflow now checks release-version consistency across `version.json`, the update manager, beta feedback form, service-worker cache name and cache-busted HTML asset URLs. It also checks that service-worker core assets and manifest icons exist in the repository.\n- These are source-level safeguards. They do not replace physical-device install, offline, update or backup/restore testing. The third-party QR scanner remains externally loaded from unpkg without a verified Subresource Integrity hash, and the current CSP still permits inline scripts and styles.\n\n## Release verification checklist
 
 - [ ] Install from the production Pages URL on real iPhone Safari.
 - [ ] Install from Chrome on Android.
