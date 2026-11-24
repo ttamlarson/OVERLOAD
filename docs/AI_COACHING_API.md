@@ -2,6 +2,9 @@
 
 ## Current status
 
+The PWA now includes an optional Coach-screen AI review panel. It previews the exact compact summary, requires a fresh per-request consent checkbox, sends only the allow-listed weekly-review fields, uses the Cloudflare Access browser session (`credentials: include`), and renders returned model text as escaped text. The endpoint metadata is intentionally blank until the protected Worker hostname and Access application have been configured. The panel remains local-only and reports that it is disconnected in the meantime.
+
+
 The deterministic browser coaching engine remains the offline baseline. This Worker is the server-side AI adapter foundation. It is deliberately disabled by default and will not call an AI provider until the operator configures authentication, rate limiting, origin allow-listing and server-side credentials.
 
 ## Security boundary
