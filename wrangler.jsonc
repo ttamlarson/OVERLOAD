@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "overload",
+  "main": "workers/ai-coach/src/index.mjs",
+  "compatibility_date": "2026-11-24",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": ["/v1/coach*"]
+  },
+  "vars": {
+    "AI_ENABLED": "false",
+    "AI_API_BASE_URL": "https://api.openai.com/v1/chat/completions"
+  }
+}
