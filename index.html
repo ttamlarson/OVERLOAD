@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="overload-ai-endpoint" content="https://overload.ttamlarson.workers.dev/v1/coach">
-<link rel="manifest" href="./manifest.webmanifest?v=5.14.6">
-<link rel="icon" href="./overload-mark.svg?v=5.14.6" type="image/svg+xml">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.14.6">
+<link rel="manifest" href="./manifest.webmanifest?v=5.14.7">
+<link rel="icon" href="./overload-mark.svg?v=5.14.7" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.14.7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OVERLOAD">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -658,12 +658,12 @@ input,select,textarea{max-width:100%;font-size:16px}
 <div id="toast" class="hidden" role="status"></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="./muscle-map.js?v=5.14.6"></script>
+<script src="./muscle-map.js?v=5.14.7"></script>
 <script src="./coach-engine.js"></script>
-<script src="./personal-records.js?v=5.14.6"></script>
-<script src="./programme-templates.js?v=5.14.6"></script>
-<script src="./backup-validation.js?v=5.14.6"></script>
-<script src="./ai-coach-client.js?v=5.14.6"></script>
+<script src="./personal-records.js?v=5.14.7"></script>
+<script src="./programme-templates.js?v=5.14.7"></script>
+<script src="./backup-validation.js?v=5.14.7"></script>
+<script src="./ai-coach-client.js?v=5.14.7"></script>
 <script>
 (() => {
 'use strict';
@@ -1145,9 +1145,10 @@ function renderCoach(){
  $('coachNutrition').innerHTML='<div class="grid two"><div class="stat"><div class="small">ENERGY</div><div class="metric">'+Math.round(report.intake.calories)+' / '+report.calorieTarget+'</div><div class="small">'+report.caloriePercent+'% of daily target</div></div><div class="stat"><div class="small">PROTEIN</div><div class="metric">'+Math.round(report.intake.protein)+' / '+report.proteinTarget+' g</div><div class="small">'+report.proteinPercent+'% of daily target</div></div></div><div class="notice">Nutrition totals only include foods recorded for today. Missing entries are not treated as zero intake.</div><button class="btn secondary" data-go="nutrition">Open food log</button>';
 }
  const aiReady=!!(window.OverloadAI&&window.OverloadAI.endpoint());
- $('aiCoachStatus').textContent=aiReady?'Secure AI coaching endpoint configured. Preview the summary before choosing whether to send it.':'AI coaching is not connected yet. Your records remain on this device.';
+ $('aiCoachStatus').textContent=aiReady?'Secure AI coaching endpoint configured. Choose a task and consent before sending preferences.':'AI coaching is not connected yet. Your records remain on this device.';
  $('aiConsent').disabled=!aiReady;
- $('aiGenerate').disabled=!aiReady||!$('aiConsent').checked||!aiPreviewSnapshot;
+ $('aiGenerate').disabled=!aiReady||!$('aiConsent').checked;
+ $('aiProgramGenerate').disabled=!aiReady||!$('aiProgramConsent').checked;
 
 
 function renderHome(){
@@ -1759,7 +1760,7 @@ if(state.current.exercises.length)renderExercises();else setPlan(state.current.t
 render();
 })();
 </script>
-<script src="./beta-feedback.js?v=5.14.6"></script>
+<script src="./beta-feedback.js?v=5.14.7"></script>
 <script src="./update.js"></script>
 <script>
 if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {
