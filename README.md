@@ -6,7 +6,7 @@ OVERLOAD is a performance training system for tracking training, nutrition, prog
 
 ## Product roadmap
 
-See [docs/PLATFORM_ROADMAP.md](docs/PLATFORM_ROADMAP.md) for the complete performance-platform delivery plan.
+See [docs/PLATFORM_ROADMAP.md](docs/PLATFORM_ROADMAP.md) for the product delivery plan and [docs/COMMERCIAL_READINESS_PLAN.md](docs/COMMERCIAL_READINESS_PLAN.md) for the commercial launch, AI coaching, beta and revenue milestones.
 
 ## Coaching and workout intelligence (5.4.0)
 
