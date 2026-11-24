@@ -1131,16 +1131,20 @@ function renderCoach(){
 
 
 function renderHome(){
+ // Home is intentionally a launch screen; keep optional dashboard bindings safe
+ // for older layouts without duplicating Nutrition and Progress metrics here.
  const t=totals(today()),c=n(state.settings.calories),p=n(state.settings.protein);
- $('dcal').textContent=Math.round(t.cal);$('dpro').textContent=Math.round(t.pro)+'g';
- $('dcalgoal').textContent='of '+c+' kcal';$('dprogoal').textContent='of '+p+' g';
- bar('dcalbar',t.cal,c);bar('dprobar',t.pro,p);
- $('dsessions').textContent=state.workouts.length;
+ if($('dcal'))$('dcal').textContent=Math.round(t.cal);
+ if($('dpro'))$('dpro').textContent=Math.round(t.pro)+'g';
+ if($('dcalgoal'))$('dcalgoal').textContent='of '+c+' kcal';
+ if($('dprogoal'))$('dprogoal').textContent='of '+p+' g';
+ if($('dcalbar'))bar('dcalbar',t.cal,c);
+ if($('dprobar'))bar('dprobar',t.pro,p);
+ if($('dsessions'))$('dsessions').textContent=state.workouts.length;
  const latest=state.measurements.filter(m=>m.weight!==''&&m.weight!=null).slice(-1)[0];
- $('dweight').textContent=latest?latest.weight+' kg':'—';
- const a=[...state.workouts].reverse().slice(0,4);
- $('activity').innerHTML=a.length?a.map(w=>`<div class="listitem between"><strong>${esc(w.type)}</strong><span class="small">${dateText(w.date)}</span></div>`).join(''):'<div class="empty">Your logged workouts will appear here.</div>';
-
+ if($('dweight'))$('dweight').textContent=latest?latest.weight+' kg':'—';
+ const activity=$('activity');
+ if(activity){const a=[...state.workouts].reverse().slice(0,4);activity.innerHTML=a.length?a.map(w=>`<div class="listitem between"><strong>${esc(w.type)}</strong><span class="small">${dateText(w.date)}</span></div>`).join(''):'<div class="empty">Your logged workouts will appear here.</div>';}
 }
 
 function renderCardio(){
