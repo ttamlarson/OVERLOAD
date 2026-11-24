@@ -29,9 +29,14 @@ h1{font-size:19px;letter-spacing:.08em;margin:2px 0}
 h2{font-size:26px;margin:8px 0 14px}
 h3{font-size:16px;margin:0 0 12px}
 p{color:var(--muted)}
-nav{display:flex;gap:7px;overflow:auto;margin-bottom:18px;padding-bottom:4px}
-nav button{white-space:nowrap;border:1px solid var(--line);background:transparent;color:var(--muted);padding:10px 13px;border-radius:12px}
-nav button.active{background:var(--accent);color:#101114;font-weight:800}
+nav{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;margin:0 0 20px;padding:7px 6px 9px;background:linear-gradient(180deg,var(--panel),color-mix(in srgb,var(--panel) 72%,transparent));border:1px solid var(--line);border-radius:16px;scrollbar-width:none; -webkit-overflow-scrolling:touch}
+nav::-webkit-scrollbar{display:none}
+nav button{position:relative;flex:0 0 auto;white-space:nowrap;border:1px solid transparent;background:var(--surface);color:var(--muted);padding:11px 15px;border-radius:11px;font-size:13px;font-weight:700;letter-spacing:.01em;transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
+nav button:hover{border-color:var(--line);color:var(--text);transform:translateY(-1px)}
+nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav button.active{background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 78%,white));color:#101114;border-color:color-mix(in srgb,var(--accent) 70%,white);font-weight:850;box-shadow:0 5px 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+nav button.active:after{content:"";position:absolute;left:14px;right:14px;bottom:4px;height:2px;border-radius:3px;background:currentColor;opacity:.28}
+@media(max-width:700px){nav{position:sticky;top:5px;z-index:20;gap:6px;padding:6px;margin-left:-2px;margin-right:-2px;backdrop-filter:blur(14px)}nav button{padding:10px 12px;font-size:12px}}
 .view{display:none}.view.active{display:block}
 .hero{padding:25px;border:1px solid var(--line);border-radius:22px;background:radial-gradient(ellipse at top right,var(--hero-glow),var(--panel) 55%,var(--bg));margin-bottom:14px}
 .hero h2{font-size:clamp(30px,6vw,43px);line-height:1.05;letter-spacing:-.04em}
@@ -512,7 +517,11 @@ input,select,textarea{max-width:100%;font-size:16px}
   <div class="field"><label>Soreness (1–5)</label><select id="soreness"><option value="3">3 — Average</option><option value="1">1 — Very low</option><option value="2">2 — Low</option><option value="4">4 — High</option><option value="5">5 — Very high</option></select></div>
   <div class="field"><label>Date</label><input id="rdate" type="date"></div>
  </div><div class="field" style="margin-top:10px"><label>Notes</label><textarea id="rnotes" rows="2" placeholder="Fatigue, hydration, nightshift..."></textarea></div><button class="btn" id="saverecovery" style="margin-top:12px">Save check-in</button></div>
- <h3 class="section-title">Recovery history</h3><div class="card" id="recoverylist"><div class="empty">No check-ins yet.</div></div></div></details>
+ </div></details>
+ <details class="dash-section recovery-history" id="recoveryHistory">
+  <summary><span>Recovery history</span><span class="small">PAST CHECK-INS · REVIEW</span></summary>
+  <div class="section-content"><div class="card" id="recoverylist"><div class="empty">No check-ins yet.</div></div></div>
+ </details>
 </section>
 
 <section class="view" id="training">
