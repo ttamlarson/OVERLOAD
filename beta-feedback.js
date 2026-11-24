@@ -1,7 +1,7 @@
 /* OVERLOAD beta feedback — opt-in, local-first, no analytics or workout-data access. */
 (() => {
 'use strict';
-const VERSION='5.14.6', ISSUE_BASE='https://github.com/ttamlarson/OVERLOAD/issues/new';
+const VERSION='5.14.7', ISSUE_BASE='https://github.com/ttamlarson/OVERLOAD/issues/new';
 const browserInfo=()=>{const ua=navigator.userAgent||'';const b=/Edg\//.test(ua)?'Edge':/Firefox\//.test(ua)?'Firefox':/CriOS\//.test(ua)?'Chrome (iOS)':/Chrome\//.test(ua)?'Chrome':/Safari\//.test(ua)?'Safari':'Other';const d=/iPhone|iPad|iPod/.test(ua)?'iOS':/Android/.test(ua)?'Android':/Windows/.test(ua)?'Windows':/Mac OS/.test(ua)?'macOS':'Other';return d+' · '+b};
 const style=document.createElement('style');
 style.textContent='\
