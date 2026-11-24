@@ -409,15 +409,12 @@ input,select,textarea{max-width:100%;font-size:16px}
  <div class="small" id="today"></div>
 </header>
 
-<nav>
- <button class="active" data-tab="home" data-icon="home">Overview</button>
- <button data-tab="coach" data-icon="activity">Coach</button>
- <button data-tab="training" data-icon="dumbbell">Training</button>
- <button data-tab="cardio" data-icon="activity">Cardio</button>
+<nav aria-label="Main navigation">
+ <button class="active" data-tab="home" data-icon="home">Home</button>
+ <button data-tab="training" data-icon="dumbbell">Train</button>
  <button data-tab="nutrition" data-icon="nutrition">Nutrition</button>
  <button data-tab="progress" data-icon="chart">Progress</button>
- <button data-tab="recovery" data-icon="heart">Recovery</button>
- <button data-tab="settings" data-icon="settings">Settings</button>
+ <button data-tab="coach" data-icon="activity">Coach</button>
 </nav>
 
 <section class="view active" id="home">
@@ -425,7 +422,7 @@ input,select,textarea{max-width:100%;font-size:16px}
   <div class="hero-brandline"><img src="./overload-mark.svg" alt="" aria-hidden="true"><span class="dashboard-kicker">PROGRESSIVE BY DESIGN / PERFORMANCE SYSTEM</span><span class="pill">TRAIN · TRACK · PROGRESS</span></div>
   <h2>PROGRESSIVE<br>BY DESIGN.</h2>
   <p>Every session has a purpose. Every rep is recorded. Build measurable strength through progressive training, deliberate recovery and consistent execution.</p>
-  <div class="row"><button class="btn" data-go="training">Start training</button><button class="btn secondary" data-go="nutrition">Log nutrition</button></div>
+  <div class="row"><button class="btn" data-go="training">Start training</button><button class="btn secondary" data-go="nutrition">Log nutrition</button><button class="btn secondary" data-go="settings">Settings</button></div>
  </div>
  <div class="grid kpi-grid">
   <div class="card"><div class="small">CALORIES</div><div class="metric" id="dcal">0</div><div class="small" id="dcalgoal">of 2800 kcal</div><div class="bar"><span id="dcalbar"></span></div></div>
@@ -471,6 +468,15 @@ input,select,textarea{max-width:100%;font-size:16px}
   <p class="small">AI suggestions are informational, may be inaccurate and are not medical advice. They never change your programme or records.</p>
  </div>
  <div class="notice">Coaching beta: these are transparent, rules-based suggestions from your own logs, not medical advice or a diagnosis. The AI coaching layer and cloud-synced history will be added as separate, permission-based services.</div>
+<details class="dash-section" id="recovery"><summary>Recovery check-in <span class="small">SLEEP · ENERGY · STRESS</span></summary><div class="section-content"><div class="eyebrow">RECOVER TO PERFORM</div><h2>Recovery</h2>
+ <div class="card"><h3>Daily check-in</h3><div class="formgrid">
+  <div class="field"><label>Sleep (hours)</label><input id="sleep" type="number" min="0" max="24" step=".25" placeholder="6"></div>
+  <div class="field"><label>Energy (1–5)</label><select id="energy"><option value="3">3 — Average</option><option value="1">1 — Very low</option><option value="2">2 — Low</option><option value="4">4 — Good</option><option value="5">5 — Excellent</option></select></div>
+  <div class="field"><label>Stress (1–5)</label><select id="stress"><option value="3">3 — Average</option><option value="1">1 — Very low</option><option value="2">2 — Low</option><option value="4">4 — High</option><option value="5">5 — Very high</option></select></div>
+  <div class="field"><label>Soreness (1–5)</label><select id="soreness"><option value="3">3 — Average</option><option value="1">1 — Very low</option><option value="2">2 — Low</option><option value="4">4 — High</option><option value="5">5 — Very high</option></select></div>
+  <div class="field"><label>Date</label><input id="rdate" type="date"></div>
+ </div><div class="field" style="margin-top:10px"><label>Notes</label><textarea id="rnotes" rows="2" placeholder="Fatigue, hydration, nightshift..."></textarea></div><button class="btn" id="saverecovery" style="margin-top:12px">Save check-in</button></div>
+ <h3 class="section-title">Recovery history</h3><div class="card" id="recoverylist"><div class="empty">No check-ins yet.</div></div></div></details>
 </section>
 
 <section class="view" id="training">
@@ -499,10 +505,7 @@ input,select,textarea{max-width:100%;font-size:16px}
  <h3 class="section-title">Rest timer</h3>
  <div class="card"><div class="between"><div><div class="small">TIME REMAINING</div><div class="timer" id="timer">01:30</div></div><div class="row"><button class="btn secondary" data-seconds="60">60s</button><button class="btn secondary" data-seconds="90">90s</button><button class="btn secondary" data-seconds="120">120s</button></div></div><div class="row" style="margin-top:12px"><button class="btn" id="starttimer">Start</button><button class="btn secondary" id="pausetimer">Pause</button><button class="btn secondary" id="resettimer">Reset</button></div></div>
  <h3 class="section-title">Workout history</h3><div class="card" id="whistory"><div class="empty">No workouts saved yet.</div></div>
-</section>
-
-<section class="view" id="cardio">
- <div class="eyebrow">ENGINE WORK</div><h2>Cardio</h2>
+<details class="dash-section" id="cardio"><summary>Cardio sessions <span class="small">CONDITIONING & HISTORY</span></summary><div class="section-content"><div class="eyebrow">ENGINE WORK</div><h2>Cardio</h2>
  <div class="card">
   <div class="formgrid">
    <div class="field"><label>Type</label>
@@ -527,7 +530,7 @@ input,select,textarea{max-width:100%;font-size:16px}
   <button class="btn" id="savecardio" style="margin-top:12px">Save cardio session</button>
  </div>
  <h3 class="section-title">Cardio history</h3>
- <div class="card" id="cardioHistory"><div class="empty">No cardio sessions logged yet.</div></div>
+ <div class="card" id="cardioHistory"><div class="empty">No cardio sessions logged yet.</div></div></div></details>
 </section>
 
 <section class="view" id="nutrition">
@@ -600,18 +603,6 @@ input,select,textarea{max-width:100%;font-size:16px}
    <div class="stat"><div class="small">THIS MONTH</div><div class="metric" id="monthWorkouts">0</div><div class="small">workouts completed</div></div>
   </div>
  </div>
-</section>
-
-<section class="view" id="recovery">
- <div class="eyebrow">RECOVER TO PERFORM</div><h2>Recovery</h2>
- <div class="card"><h3>Daily check-in</h3><div class="formgrid">
-  <div class="field"><label>Sleep (hours)</label><input id="sleep" type="number" min="0" max="24" step=".25" placeholder="6"></div>
-  <div class="field"><label>Energy (1–5)</label><select id="energy"><option value="3">3 — Average</option><option value="1">1 — Very low</option><option value="2">2 — Low</option><option value="4">4 — Good</option><option value="5">5 — Excellent</option></select></div>
-  <div class="field"><label>Stress (1–5)</label><select id="stress"><option value="3">3 — Average</option><option value="1">1 — Very low</option><option value="2">2 — Low</option><option value="4">4 — High</option><option value="5">5 — Very high</option></select></div>
-  <div class="field"><label>Soreness (1–5)</label><select id="soreness"><option value="3">3 — Average</option><option value="1">1 — Very low</option><option value="2">2 — Low</option><option value="4">4 — High</option><option value="5">5 — Very high</option></select></div>
-  <div class="field"><label>Date</label><input id="rdate" type="date"></div>
- </div><div class="field" style="margin-top:10px"><label>Notes</label><textarea id="rnotes" rows="2" placeholder="Fatigue, hydration, nightshift..."></textarea></div><button class="btn" id="saverecovery" style="margin-top:12px">Save check-in</button></div>
- <h3 class="section-title">Recovery history</h3><div class="card" id="recoverylist"><div class="empty">No check-ins yet.</div></div>
 </section>
 
 <section class="view" id="settings">
@@ -1329,8 +1320,15 @@ function init(){
  });
 
  function sync(){state.current.type=$('wtype').value;state.current.date=$('wdate').value;state.current.duration=$('duration').value;state.current.notes=$('wnotes').value}
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));if(b.dataset.tab==='coach')renderCoach();if(b.dataset.tab==='progress'){drawChart([...state.measurements].sort((a,b)=>a.date.localeCompare(b.date)));renderAnalytics()}});
-document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>document.querySelector(`[data-tab="${b.dataset.go}"]`).click());
+function activateView(tab){
+ const target=$(tab);if(!target)return;
+ document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
+ document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===tab));
+ if(tab==='coach')renderCoach();
+ if(tab==='progress'){drawChart([...state.measurements].sort((a,b)=>a.date.localeCompare(b.date)));renderAnalytics()}
+}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>activateView(b.dataset.tab));
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>activateView(b.dataset.go));
 function openWorkout(type) {
   if(!$('wtype').querySelector(`option[value="${CSS.escape(type)}"]`)){const opt=document.createElement('option');opt.value=type;opt.textContent=type;$('wtype').appendChild(opt)}
   $('wtype').value = type;
