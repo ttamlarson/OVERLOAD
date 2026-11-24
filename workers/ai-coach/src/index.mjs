@@ -202,4 +202,20 @@ export async function handleRequest(request, env) {
   }
 }
 
-export default { fetch: handleRequest };
+/**
+ * Unified PWA + AI API entry point.
+ * Cloudflare Static Assets serves the existing app; only /v1/coach is
+ * routed through the authenticated AI handler.
+ */
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    if (url.pathname === "/v1/coach" || url.pathname === "/v1/coach/") {
+      return handleRequest(request, env);
+    }
+    if (env.ASSETS && typeof env.ASSETS.fetch === "function") {
+      return env.ASSETS.fetch(request);
+    }
+    return json({ error: "Static assets binding is unavailable." }, 503);
+  }
+};
