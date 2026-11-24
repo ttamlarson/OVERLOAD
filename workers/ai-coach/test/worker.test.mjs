@@ -77,8 +77,9 @@ test("programme generation prompt requires available equipment and sensible volu
     goal: "Strength", daysPerWeek: 3, sessionMinutes: 45, equipment: ["Dumbbells"]
   }});
   const messages = buildMessages(safe);
-  assert.match(messages[0].content, /Use only listed equipment/);
-  assert.match(messages[0].content, /balanced strength/);
+  assert.match(messages[0].content, /untrusted data/);
+  assert.match(messages[1].content, /Use only listed equipment/);
+  assert.match(messages[1].content, /balanced strength/);
   assert.match(messages[1].content, /programme_generation/);
 });
 
