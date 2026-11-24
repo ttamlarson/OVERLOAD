@@ -1591,6 +1591,32 @@ $('aiGenerate').onclick=async()=>{
  }catch(error){status.textContent=error.message||'AI coaching is unavailable.'}
  finally{$('aiConsent').checked=false;aiPreviewSnapshot=null;button.disabled=true}
 };
+$('aiChatQuestion').addEventListener('input',()=>{
+ $('aiChatSend').disabled=!window.OverloadAI.endpoint()||!$('aiChatConsent').checked||$('aiChatQuestion').value.trim().length<3;
+});
+$('aiChatConsent').onchange=()=>{
+ $('aiChatSend').disabled=!window.OverloadAI.endpoint()||!$('aiChatConsent').checked||$('aiChatQuestion').value.trim().length<3;
+};
+$('aiChatSend').onclick=async()=>{
+ const button=$('aiChatSend'),status=$('aiChatStatus'),output=$('aiChatResult');
+ const question=$('aiChatQuestion').value.trim();
+ if(!$('aiChatConsent').checked||question.length<3)return;
+ button.disabled=true;status.textContent='Preparing a short training summary and contacting your AI Coach…';output.textContent='';
+ try{
+  const snapshot=window.OverloadAI.buildWeeklyReview(state,today());
+  const result=await window.OverloadAI.requestCoachChat(question,snapshot.context,true);
+  const article=document.createElement('div');article.className='listitem';
+  const heading=document.createElement('strong');heading.textContent=result.title||'Your Coach';
+  const summary=document.createElement('p');summary.textContent=result.summary;
+  article.append(heading,summary);output.append(article);
+  result.suggestions.forEach(item=>{const row=document.createElement('div');row.className='listitem';row.textContent=item;output.append(row)});
+  if(result.dataUsed.length){const used=document.createElement('p');used.className='small';used.textContent='Based on: '+result.dataUsed.join(' · ');output.append(used)}
+  if(result.limitations.length){const limits=document.createElement('p');limits.className='small';limits.textContent='Limitations: '+result.limitations.join(' · ');output.append(limits)}
+  const disclaimer=document.createElement('p');disclaimer.className='small';disclaimer.textContent=result.disclaimer;output.append(disclaimer);
+  status.textContent='Coach response received. No app records or programmes were changed.';
+ }catch(error){status.textContent=error.message||'AI Coach is temporarily unavailable.'}
+ finally{$('aiChatConsent').checked=false;$('aiChatSend').disabled=true}
+};
 let pendingAIProgramme=null;
 $('aiProgramConsent').onchange=()=>{$('aiProgramGenerate').disabled=!window.OverloadAI.endpoint()||!$('aiProgramConsent').checked};
 document.querySelectorAll('[data-ai-preset]').forEach(button=>button.addEventListener('click',()=>{
