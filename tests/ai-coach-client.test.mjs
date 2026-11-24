@@ -26,6 +26,17 @@ test('builds a minimized weekly summary without notes or raw food records', () =
   assert.equal(preview.context.recovery.notes, undefined);
   assert.equal(preview.context.nutrition.rawFoods, undefined);
   assert.equal(preview.context.nutrition.calories, 2500);
+  assert.equal(preview.context.nutrition.loggedDays, 1);
+});
+
+test('does not include stale or future recovery check-ins in the AI preview', () => {
+  const preview = ai.buildWeeklyReview({
+    recoveries: [
+      { date: '2026-11-20', sleep: 8, energy: 5, stress: 1, soreness: 1 },
+      { date: '2026-11-25', sleep: 3, energy: 1, stress: 5, soreness: 5 }
+    ]
+  }, '2026-11-24');
+  assert.equal(preview.context.recovery, undefined);
 });
 
 test('does not send data without explicit consent or configured endpoint', async () => {
@@ -47,6 +58,18 @@ test('requires HTTPS and uses Access session credentials after consent', async (
   });
   assert.equal(result.summary, 'Steady training');
   assert.equal(request.options.credentials, 'include');
+  assert.equal(request.options.cache, 'no-store');
+  assert.equal(request.options.referrerPolicy, 'no-referrer');
   assert.equal(request.options.headers.authorization, undefined);
   assert.equal(JSON.parse(request.options.body).consent, true);
+});
+
+test('rejects malformed or oversized AI result structures before rendering', async () => {
+  meta.content = 'https://worker.example/v1/coach';
+  await assert.rejects(ai.requestWeeklyReview({}, true, async () => ({
+    ok: true, json: async () => ({ result: { title: 'Review', summary: 'Bad', suggestions: [1], dataUsed: [], limitations: [] } })
+  })), /could not be verified/i);
+  await assert.rejects(ai.requestWeeklyReview({}, true, async () => ({
+    ok: true, json: async () => ({ result: { title: 'Review', summary: 'Bad', suggestions: ['1','2','3','4'], dataUsed: [], limitations: [] } })
+  })), /could not be verified/i);
 });
