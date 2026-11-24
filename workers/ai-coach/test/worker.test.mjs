@@ -62,3 +62,16 @@ test("AI stays disabled by default and exposes credentialed CORS only to the all
   assert.equal(response.headers.get("access-control-allow-origin"), "https://app.example");
   assert.equal(response.headers.get("access-control-allow-credentials"), "true");
 });
+
+test("returns CORS preflight only for the configured origin", async () => {
+  const response = await handleRequest(new Request("https://api.example/v1/coach", { method: "OPTIONS", headers: { Origin: "https://app.example" } }), { OVERLOAD_ALLOWED_ORIGIN: "https://app.example" });
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get("access-control-allow-credentials"), "true");
+  const rejected = await handleRequest(new Request("https://api.example/v1/coach", { method: "OPTIONS", headers: { Origin: "https://other.example" } }), { OVERLOAD_ALLOWED_ORIGIN: "https://app.example" });
+  assert.equal(rejected.status, 403);
+});
+
+test("fails closed when the rate limiter is missing", async () => {
+  const response = await handleRequest(new Request("https://api.example/v1/coach", { method: "POST", headers: { Origin: "https://app.example", "cf-access-jwt-assertion": "not-a-valid-token" }, body: "{}" }), { OVERLOAD_ALLOWED_ORIGIN: "https://app.example", AI_ENABLED: "true" });
+  assert.equal(response.status, 401);
+});
