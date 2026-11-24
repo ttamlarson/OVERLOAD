@@ -1,0 +1,10 @@
+name = "overload-ai-coach"
+main = "src/index.mjs"
+compatibility_date = "2026-11-24"
+
+[vars]
+AI_ENABLED = "false"
+AI_API_BASE_URL = "https://api.openai.com/v1/chat/completions"
+# Set AI_MODEL, OVERLOAD_ALLOWED_ORIGIN, CF_ACCESS_TEAM_DOMAIN and CF_ACCESS_AUD
+# as non-secret Worker variables. Add AI_API_KEY as a Worker secret.
+# Configure the AI_RATE_LIMITER binding in the Cloudflare dashboard before enabling.
