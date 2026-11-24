@@ -17,7 +17,7 @@ const json = (body, status = 200, headers = {}) => new Response(JSON.stringify(b
 });
 const text = (value, max = MAX_CONTEXT_TEXT) => typeof value === "string" ? value.trim().slice(0, max) : "";
 const numeric = value => value === null || value === undefined || value === "" ? null : Number.isFinite(Number(value)) ? Math.max(0, Math.min(100000, Number(value))) : null;
-const date = value => /^\d{4}-\d{2}-\d{2}$/.test(String(value || "")) ? String(value) : null;
+const date = value => { const candidate = String(value || ""); if (!/^\d{4}-\d{2}-\d{2}$/.test(candidate)) return null; const parsed = new Date(candidate + "T00:00:00Z"); return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === candidate ? candidate : null; };
 
 export function sanitiseRequest(input) {
   if (!input || input.consent !== true || !TASKS.has(input.task)) return null;
