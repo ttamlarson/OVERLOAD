@@ -55,3 +55,10 @@ test("only serves the documented coaching endpoint", async () => {
   const response = await handleRequest(new Request("https://api.example/not-the-coach", { method: "POST", headers: { Origin: "https://app.example" }, body: "{}" }), { OVERLOAD_ALLOWED_ORIGIN: "https://app.example" });
   assert.equal(response.status, 404);
 });
+
+test("AI stays disabled by default and exposes credentialed CORS only to the allow-listed origin", async () => {
+  const response = await handleRequest(new Request("https://api.example/v1/coach", { method: "POST", headers: { Origin: "https://app.example" }, body: "{}" }), { OVERLOAD_ALLOWED_ORIGIN: "https://app.example" });
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get("access-control-allow-origin"), "https://app.example");
+  assert.equal(response.headers.get("access-control-allow-credentials"), "true");
+});
