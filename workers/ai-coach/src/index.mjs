@@ -90,9 +90,14 @@ export function buildMessages(request) {
   ];
 }
 
-export function validateModelResponse(value) {
+export function validateModelResponse(value, requireProgramme = false) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   if (typeof value.title !== "string" || typeof value.summary !== "string" || !Array.isArray(value.suggestions) || !Array.isArray(value.dataUsed) || !Array.isArray(value.limitations)) return null;
+  if (requireProgramme) {
+    const p=value.programme;
+    if (!p || typeof p.name!=="string" || typeof p.description!=="string" || !Array.isArray(p.days) || p.days.length<1 || p.days.length>6) return null;
+    if (p.days.some(day => !day || typeof day.name!=="string" || !Array.isArray(day.exercises) || day.exercises.length<3 || day.exercises.length>8 || day.exercises.some(ex => !ex || typeof ex.name!=="string" || !Number.isInteger(Number(ex.sets)) || Number(ex.sets)<1 || Number(ex.sets)>6 || typeof ex.target!=="string"))) return null;
+  }
   return {
     title: text(value.title, 100),
     summary: text(value.summary, 900),
@@ -212,7 +217,7 @@ export async function handleRequest(request, env) {
     const payload = await providerResponse.json();
     const content = payload?.choices?.[0]?.message?.content;
     let parsed;
-    try { parsed = validateModelResponse(JSON.parse(content)); } catch { parsed = null; }
+    try { parsed = validateModelResponse(JSON.parse(content), safe.task === "programme_generation"); } catch { parsed = null; }
     if (!parsed) return json({ error: "AI response did not meet the required format." }, 502, cors);
     const usage = payload?.usage && typeof payload.usage === "object" ? {
       promptTokens: numeric(payload.usage.prompt_tokens),
