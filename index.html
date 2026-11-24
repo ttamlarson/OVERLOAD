@@ -455,7 +455,7 @@ input,select,textarea{max-width:100%;font-size:16px}
   <div class="section-content" id="coachBrief"><div class="empty">Your coaching brief will appear here.</div></div>
   <div class="divider" style="margin:16px 0"></div>
   <h3>AI coaching review</h3>
-  <p class="small">Ask AI to build on your daily brief with a second-pass review of a compact training summary. Your full workout history, recovery notes, individual food entries and body measurements are not sent.</p>
+  <p class="small">Get a personalised review of your recent training, with practical suggestions for what to focus on next. A short summary is sent — not your full workout history or individual records.</p>
   <div class="notice" id="aiCoachStatus" role="status">AI coaching is not connected yet. Your records remain on this device.</div>
   <label class="row" style="align-items:flex-start;gap:10px;margin-top:12px"><input id="aiConsent" type="checkbox"><span class="small">I consent to sending a compact summary of my recent workouts and, where available, recovery and nutrition averages to OVERLOAD's AI service for this review. Individual food entries, full workout history and body measurements are not sent.</span></label>
   <button class="btn" id="aiGenerate" type="button" disabled>Generate AI review</button>
@@ -463,7 +463,14 @@ input,select,textarea{max-width:100%;font-size:16px}
   <details class="dash-section" id="aiProgrammeBuilder" style="margin-top:16px">
    <summary>Build a programme with AI <span class="small">PERSONALISED TRAINING PLAN</span></summary>
    <div class="section-content">
-    <p class="small">Tell the Coach what you want to train. It will build a draft you can review, edit and save into Training → Programmes. Nothing is added until you choose to save it.</p>
+    <p class="small">Start with a ready-made setup, or customise the options below. The Coach creates a draft first — nothing is added to your programmes until you review and save it.</p>
+    <div class="small" style="margin:10px 0 6px"><strong>Quick start</strong> · choose the closest match</div>
+    <div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:14px">
+     <button class="btn secondary" type="button" data-ai-preset="3day">3-day full body</button>
+     <button class="btn secondary" type="button" data-ai-preset="upperlower">4-day upper / lower</button>
+     <button class="btn secondary" type="button" data-ai-preset="ppl">6-day push / pull / legs</button>
+     <button class="btn secondary" type="button" data-ai-preset="strength">4-day strength</button>
+    </div>
     <div class="formgrid">
      <div class="field"><label>Primary goal</label><select id="aiProgramGoal"><option value="Build muscle and strength">Build muscle and strength</option><option value="Hypertrophy / muscle size">Hypertrophy / muscle size</option><option value="Maximal strength">Maximal strength</option><option value="General fitness and conditioning">General fitness and conditioning</option><option value="Strength with fat loss support">Strength with fat loss support</option><option value="Improve a specific lift">Improve a specific lift</option></select></div>
      <div class="field"><label>Training focus</label><input id="aiProgramFocus" maxlength="100" placeholder="e.g. chest, back, legs, Big Three"></div>
@@ -472,9 +479,10 @@ input,select,textarea{max-width:100%;font-size:16px}
      <div class="field"><label>Experience</label><select id="aiProgramLevel"><option value="beginner">Beginner</option><option value="intermediate" selected>Intermediate</option><option value="advanced">Advanced</option></select></div>
      <div class="field"><label>Preferred split</label><select id="aiProgramSplit"><option value="AI choose the best split">AI choose</option><option value="Upper / Lower">Upper / Lower</option><option value="Push / Pull / Legs">Push / Pull / Legs</option><option value="Full body">Full body</option><option value="Body-part split">Body-part split</option><option value="Strength-focused split">Strength-focused split</option></select></div>
     </div>
-    <div class="field" style="margin-top:10px"><label>Available equipment</label><input id="aiProgramEquipment" maxlength="220" value="Barbell, dumbbells, bench, cable machine, squat rack" placeholder="e.g. Barbell, dumbbells, machines"></div>
-    <label class="row" style="align-items:flex-start;gap:10px;margin-top:12px"><input id="aiProgramConsent" type="checkbox"><span class="small">I consent to sending these programme preferences to OVERLOAD's AI service to generate a training plan. Only the preferences shown above are sent — not my workout history, food logs, recovery notes or measurements.</span></label>
-    <button class="btn" id="aiProgramGenerate" type="button" disabled>Generate programme</button>
+    <div class="field" style="margin-top:10px"><label>Available equipment</label><input id="aiProgramEquipment" maxlength="220" value="Barbell, dumbbells, bench, cable machine, squat rack" placeholder="e.g. Barbell, dumbbells, machines"><div class="small">Separate items with commas. Only this list and your choices above are sent.</div></div>
+    <div class="notice" style="margin-top:12px">Your workout history, food log, recovery notes and measurements are not sent for programme generation.</div>
+    <label class="row" style="align-items:flex-start;gap:10px;margin-top:12px"><input id="aiProgramConsent" type="checkbox"><span class="small">I agree to send the programme preferences shown above to the AI service to create this plan.</span></label>
+    <button class="btn" id="aiProgramGenerate" type="button" disabled>Create my programme</button>
     <div id="aiProgramStatus" class="notice" role="status">Complete your preferences and give consent to generate a programme.</div>
     <div id="aiProgramResult" aria-live="polite"></div>
     <p class="small">Generated plans are suggestions, not medical advice. Review exercise selection, technique and workload before training.</p>
@@ -1576,6 +1584,18 @@ $('aiGenerate').onclick=async()=>{
 };
 let pendingAIProgramme=null;
 $('aiProgramConsent').onchange=()=>{$('aiProgramGenerate').disabled=!window.OverloadAI.endpoint()||!$('aiProgramConsent').checked};
+document.querySelectorAll('[data-ai-preset]').forEach(button=>button.addEventListener('click',()=>{
+ const presets={
+  '3day':{days:3,split:'Full body',goal:'Build muscle and strength',minutes:60},
+  upperlower:{days:4,split:'Upper / Lower',goal:'Build muscle and strength',minutes:60},
+  ppl:{days:6,split:'Push / Pull / Legs',goal:'Hypertrophy / muscle size',minutes:60},
+  strength:{days:4,split:'Strength-focused split',goal:'Maximal strength',minutes:75}
+ };
+ const p=presets[button.dataset.aiPreset];if(!p)return;
+ $('aiProgramDays').value=String(p.days);$('aiProgramSplit').value=p.split;$('aiProgramGoal').value=p.goal;$('aiProgramMinutes').value=String(p.minutes);
+ $('aiProgramStatus').textContent='Setup selected. You can change any option before creating your programme.';
+ document.querySelectorAll('[data-ai-preset]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+}));
 $('aiProgramGenerate').onclick=async()=>{
  const button=$('aiProgramGenerate'),status=$('aiProgramStatus'),output=$('aiProgramResult');
  if(!$('aiProgramConsent').checked)return;
