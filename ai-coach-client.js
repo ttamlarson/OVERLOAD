@@ -87,6 +87,35 @@
         : 'Training and nutrition information only — not medical advice.'
     };
   }
+  function validateProgramme(result) {
+    if (!result || typeof result !== 'object' || !result.programme || typeof result.programme !== 'object') return null;
+    const p=result.programme;
+    if (typeof p.name!=='string' || typeof p.description!=='string' || !Array.isArray(p.days) || p.days.length<1 || p.days.length>6) return null;
+    const days=p.days.map(day=>{
+      if(!day || typeof day.name!=='string' || !Array.isArray(day.exercises) || day.exercises.length<3 || day.exercises.length>8) return null;
+      const exercises=day.exercises.map(ex=>{
+        const sets=Number(ex?.sets);
+        if(typeof ex?.name!=='string'||!ex.name.trim()||!Number.isInteger(sets)||sets<1||sets>6||typeof ex.target!=='string')return null;
+        return {name:ex.name.trim().slice(0,80),sets,target:ex.target.slice(0,30)};
+      });
+      return exercises.some(x=>!x)?null:{id:'day-'+Math.random().toString(36).slice(2,9),name:day.name.trim().slice(0,50),exercises};
+    });
+    if(days.some(x=>!x))return null;
+    return {id:'ai-'+Date.now().toString(36),name:p.name.trim().slice(0,60),description:p.description.slice(0,240),days};
+  }
+  async function requestProgrammeGeneration(context, consent, fetchImpl = fetch) {
+    if(consent!==true)throw new Error('Consent is required before sending your programme request.');
+    const url=endpoint();
+    if(!url)throw new Error('AI coaching is not connected yet. Your details have not been sent.');
+    let parsed;try{parsed=new URL(url)}catch{throw new Error('AI coaching endpoint is not configured correctly.')}
+    if(parsed.protocol!=='https:')throw new Error('AI coaching requires a secure HTTPS endpoint.');
+    const response=await fetchImpl(url,{method:'POST',credentials:'include',cache:'no-store',referrerPolicy:'no-referrer',headers:{'content-type':'application/json'},body:JSON.stringify({task:'programme_generation',consent:true,context})});
+    let payload={};try{payload=await response.json()}catch{}
+    if(!response.ok)throw new Error(payload.error||'AI programme generation is temporarily unavailable.');
+    const result=validateResult(payload.result),programme=validateProgramme(payload.result);
+    if(!result||!programme)throw new Error('The generated programme did not pass validation. No programme was saved.');
+    return {result,programme};
+  }
   async function requestWeeklyReview(context, consent, fetchImpl = fetch) {
     if (consent !== true) throw new Error('Review the data preview and provide consent before sending anything.');
     const url = endpoint();
@@ -109,5 +138,5 @@
     if (!result) throw new Error('The AI response could not be verified. No training records were changed.');
     return result;
   }
-  window.OverloadAI = Object.freeze({ endpoint, buildWeeklyReview, requestWeeklyReview, validateResult });
+  window.OverloadAI = Object.freeze({ endpoint, buildWeeklyReview, requestWeeklyReview, requestProgrammeGeneration, validateResult, validateProgramme });
 })();
