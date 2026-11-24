@@ -217,7 +217,7 @@ export async function handleRequest(request, env) {
     const payload = await providerResponse.json();
     const content = payload?.choices?.[0]?.message?.content;
     let parsed;
-    try { parsed = validateModelResponse(JSON.parse(content), safe.task === "programme_generation"); } catch { parsed = null; }
+    try { parsed = validateModelResponse(JSON.parse(content), safe.task === "programme_generation"); if (parsed && safe.task === "programme_generation" && parsed.programme.days.length !== safe.context.daysPerWeek) parsed = null; } catch { parsed = null; }
     if (!parsed) return json({ error: "AI response did not meet the required format." }, 502, cors);
     const usage = payload?.usage && typeof payload.usage === "object" ? {
       promptTokens: numeric(payload.usage.prompt_tokens),
