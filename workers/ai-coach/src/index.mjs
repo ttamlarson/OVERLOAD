@@ -6,7 +6,7 @@
  * AI is disabled unless AI_ENABLED=true.
  */
 const MAX_BODY_BYTES = 12_000;
-const TASKS = new Set(["weekly_review", "exercise_substitution", "programme_explanation", "nutrition_pattern", "programme_generation"]);
+const TASKS = new Set(["weekly_review", "exercise_substitution", "programme_explanation", "nutrition_pattern", "programme_generation", "coach_chat"]);
 const MAX_CONTEXT_TEXT = 500;
 let jwksCache = null;
 let jwksExpiresAt = 0;
@@ -23,7 +23,23 @@ export function sanitiseRequest(input) {
   if (!input || input.consent !== true || !TASKS.has(input.task)) return null;
   const c = input.context && typeof input.context === "object" ? input.context : {};
   const context = {};
-  if (input.task === "weekly_review") {
+  if (input.task === "coach_chat") {
+    context.question = text(c.question, 700);
+    const summary = c.trainingSummary && typeof c.trainingSummary === "object" ? c.trainingSummary : {};
+    context.trainingSummary = {
+      goal: text(summary.goal, 240),
+      period: text(summary.period, 80),
+      workouts: (Array.isArray(summary.workouts) ? summary.workouts : []).slice(0, 8).map(w => ({
+        date: date(w?.date), label: text(w?.label, 80),
+        workingSets: numeric(w?.workingSets), tonnageKg: numeric(w?.tonnageKg)
+      })).filter(w => w.date || w.label)
+    };
+    if (summary.recovery && typeof summary.recovery === "object") context.trainingSummary.recovery = {
+      date: date(summary.recovery.date), sleepHours: numeric(summary.recovery.sleepHours),
+      energy: numeric(summary.recovery.energy), stress: numeric(summary.recovery.stress),
+      soreness: numeric(summary.recovery.soreness)
+    };
+  } else if (input.task === "weekly_review") {
     context.goal = text(c.goal, 240);
     context.period = text(c.period, 80) || "Recent training period";
     context.workouts = (Array.isArray(c.workouts) ? c.workouts : []).slice(0, 8).map(w => ({
@@ -78,7 +94,7 @@ export function sanitiseRequest(input) {
 
 export function buildMessages(request) {
   const taskInstructions = {
-    weekly_review: "Review the supplied training, recovery and nutrition summary. Identify a maximum of three useful patterns and up to three practical next steps. Do not infer fatigue, injury or readiness beyond the supplied data.",
+    coach_chat: "Answer the user’s specific training question conversationally and practically using the compact training summary only. If context is insufficient, ask one focused follow-up question. Do not diagnose injuries, prescribe rehabilitation, claim medical readiness, or invent personal records. Keep the answer concise and include up to three practical next steps.",\n    weekly_review: "Review the supplied training, recovery and nutrition summary. Identify a maximum of three useful patterns and up to three practical next steps. Do not infer fatigue, injury or readiness beyond the supplied data.",
     exercise_substitution: "Suggest up to three exercise substitutions for the named movement and available equipment. Explain the movement pattern and trade-offs. Do not diagnose pain or prescribe rehabilitation.",
     programme_explanation: "Explain the structure and likely training intent of the supplied programme. Highlight practical progression considerations without inventing sets, reps or exercises not supplied.",
     nutrition_pattern: "Review the supplied aggregate nutrition log. Identify consistency and gaps only where logged data supports them. Do not prescribe extreme restriction or claim medical effects.",
