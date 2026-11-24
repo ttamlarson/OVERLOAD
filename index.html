@@ -419,26 +419,18 @@ input,select,textarea{max-width:100%;font-size:16px}
 
 <section class="view active" id="home">
  <div class="hero">
-  <div class="hero-brandline"><img src="./overload-mark.svg" alt="" aria-hidden="true"><span class="dashboard-kicker">PROGRESSIVE BY DESIGN / PERFORMANCE SYSTEM</span><span class="pill">TRAIN · TRACK · PROGRESS</span></div>
-  <h2>PROGRESSIVE<br>BY DESIGN.</h2>
-  <p>Every session has a purpose. Every rep is recorded. Build measurable strength through progressive training, deliberate recovery and consistent execution.</p>
-  <div class="row"><button class="btn" data-go="training">Start training</button><button class="btn secondary" data-go="nutrition">Log nutrition</button><button class="btn secondary" data-go="settings">Settings</button></div>
+  <div class="hero-brandline"><img src="./overload-mark.svg" alt="" aria-hidden="true"><span class="dashboard-kicker">OVERLOAD / PERFORMANCE SYSTEM</span><span class="pill">TRAIN · FUEL · PROGRESS</span></div>
+  <h2>BUILT TO<br>OUTPERFORM.</h2>
+  <p>Your training, nutrition and performance records in one place. Choose where you want to focus today.</p>
+  <div class="quick-actions">
+   <button class="btn" data-go="training">Start training</button>
+   <button class="btn secondary" data-go="nutrition">Log nutrition</button>
+   <button class="btn secondary" data-go="progress">View progress</button>
+   <button class="btn secondary" data-go="coach">Open coach</button>
+   <button class="btn secondary" data-go="settings">Settings</button>
+  </div>
  </div>
- <div class="grid kpi-grid">
-  <div class="card"><div class="small">CALORIES</div><div class="metric" id="dcal">0</div><div class="small" id="dcalgoal">of 2800 kcal</div><div class="bar"><span id="dcalbar"></span></div></div>
-  <div class="card"><div class="small">PROTEIN</div><div class="metric" id="dpro">0g</div><div class="small" id="dprogoal">of 130 g</div><div class="bar"><span id="dprobar"></span></div></div>
-  <div class="card"><div class="small">BODY WEIGHT</div><div class="metric" id="dweight">—</div><div class="small">Latest weigh-in</div></div>
-  <div class="card"><div class="small">WORKOUTS</div><div class="metric" id="dsessions">0</div><div class="small">Sessions logged</div></div>
-</div>
-<details class="dash-section" open><summary>Programmes <span class="small">CREATE AND EDIT YOUR TRAINING PROGRAMMES</span></summary>
- <div class="section-content">
-  <div class="row" style="margin:0 0 12px"><button class="btn" id="addProgramme">+ Add programme</button></div>
-  <div id="programmeTemplates" class="grid two"></div>
-  <div id="programmeTemplateEditor" class="hidden" style="margin-top:12px"></div>
- </div>
-</details>
- <div class="notice">Starting nutrition targets: 2,800 kcal and 130 g protein. Adjust training volume when nightshift sleep or recovery is poor.</div>
- <details class="dash-section" open><summary>Recent activity <span class="small">LATEST SESSIONS</span></summary><div class="card" id="activity"><div class="empty">Your activity will appear here.</div></div></details>
+ <div class="notice">Your records stay on this device. Export a backup regularly from Settings to protect your training and nutrition history.</div>
 </section>
 
 
@@ -467,7 +459,7 @@ input,select,textarea{max-width:100%;font-size:16px}
   <div id="aiCoachResult" class="section-content" aria-live="polite"></div>
   <p class="small">AI suggestions are informational, may be inaccurate and are not medical advice. They never change your programme or records.</p>
  </div>
- <div class="notice">Coaching beta: these are transparent, rules-based suggestions from your own logs, not medical advice or a diagnosis. The AI coaching layer and cloud-synced history will be added as separate, permission-based services.</div>
+ <div class="notice">Your on-device coaching brief uses your logged records. The optional AI review is a separate cloud request and only runs after you give consent. Coaching is informational, not medical advice.</div>
 <details class="dash-section" id="recovery"><summary>Recovery check-in <span class="small">SLEEP · ENERGY · STRESS</span></summary><div class="section-content"><div class="card"><div class="formgrid">
   <div class="field"><label>Sleep (hours)</label><input id="sleep" type="number" min="0" max="24" step=".25" placeholder="6"></div>
   <div class="field"><label>Energy (1–5)</label><select id="energy"><option value="3">3 — Average</option><option value="1">1 — Very low</option><option value="2">2 — Low</option><option value="4">4 — Good</option><option value="5">5 — Excellent</option></select></div>
@@ -480,6 +472,14 @@ input,select,textarea{max-width:100%;font-size:16px}
 
 <section class="view" id="training">
  <div class="eyebrow">SESSION TRACKER</div><h2>Training</h2>
+ <details class="dash-section" id="trainingProgrammes"><summary>Training programmes <span class="small">CREATE · EDIT · RUN</span></summary>
+ <div class="section-content">
+  <div class="row" style="margin:0 0 12px"><button class="btn" id="addProgramme">+ Add programme</button></div>
+  <div id="programmeTemplates" class="grid two"></div>
+  <div id="programmeTemplateEditor" class="hidden" style="margin-top:12px"></div>
+ </div>
+</details>
+
  <details class="dash-section muscle-map-fold" id="workoutMapFold">
   <summary><span>Workout Load Map</span><span class="small">MUSCLE DISTRIBUTION</span></summary>
   <div class="section-content">
@@ -501,9 +501,9 @@ input,select,textarea{max-width:100%;font-size:16px}
 
  <div id="exercises"></div>
  <div class="card"><div class="field"><label>Session notes</label><textarea id="wnotes" rows="2" placeholder="Energy, technique, session notes..."></textarea></div><div class="row" style="margin-top:12px"><button class="btn" id="saveworkout">Save workout</button><button class="btn secondary" id="clearworkout">Clear session</button></div></div>
- <h3 class="section-title">Rest timer</h3>
- <div class="card"><div class="between"><div><div class="small">TIME REMAINING</div><div class="timer" id="timer">01:30</div></div><div class="row"><button class="btn secondary" data-seconds="60">60s</button><button class="btn secondary" data-seconds="90">90s</button><button class="btn secondary" data-seconds="120">120s</button></div></div><div class="row" style="margin-top:12px"><button class="btn" id="starttimer">Start</button><button class="btn secondary" id="pausetimer">Pause</button><button class="btn secondary" id="resettimer">Reset</button></div></div>
- <h3 class="section-title">Workout history</h3><div class="card" id="whistory"><div class="empty">No workouts saved yet.</div></div>
+ <details class="dash-section" id="restTimerFold"><summary>Rest timer <span class="small">BETWEEN WORKING SETS</span></summary>
+ <div class="section-content"><div class="card"><div class="between"><div><div class="small">TIME REMAINING</div><div class="timer" id="timer">01:30</div></div><div class="row"><button class="btn secondary" data-seconds="60">60s</button><button class="btn secondary" data-seconds="90">90s</button><button class="btn secondary" data-seconds="120">120s</button></div></div><div class="row" style="margin-top:12px"><button class="btn" id="starttimer">Start</button><button class="btn secondary" id="pausetimer">Pause</button><button class="btn secondary" id="resettimer">Reset</button></div></div>
+ </div><div class="section-content"><h3 class="section-title">Workout history</h3><div class="card" id="whistory"><div class="empty">No workouts saved yet.</div></div></div></details>
 <details class="dash-section" id="cardio"><summary>Cardio sessions <span class="small">CONDITIONING & HISTORY</span></summary><div class="section-content"><div class="card">
   <div class="formgrid">
    <div class="field"><label>Type</label>
@@ -564,7 +564,7 @@ input,select,textarea{max-width:100%;font-size:16px}
   <div class="field"><label>Date</label><input id="fdate" type="date"></div>
   <div class="field hidden" id="famountWrap"><label>Consumed amount (g; required for per-100 g barcode values)</label><input id="famount" type="number" min="0.1" step=".1" placeholder="Enter known grams"></div>
  </div><div class="row" style="margin-top:12px"><button class="btn" id="addfood">Add food</button><button class="btn secondary hidden" id="cancelFoodEdit" type="button">Cancel edit</button></div></div>
- <h3 class="section-title">Food log</h3><div class="card" id="foodlist"><div class="empty">No food logged for this date.</div></div>
+ <details class="dash-section" id="foodHistoryFold"><summary>Food log <span class="small">SAVED MEALS & DAILY ENTRIES</span></summary><div class="section-content"><div class="card" id="foodlist"><div class="empty">No food logged for this date.</div></div></div></details>
 </section>
 
 <section class="view" id="progress">
@@ -583,9 +583,9 @@ input,select,textarea{max-width:100%;font-size:16px}
   <p class="small pr-footnote">Records update when you save a workout. Notifications require browser permission. Background alerts while the app is closed require web-push setup.</p>
  </div>
  <h3 class="section-title">Body weight trend</h3><div class="card"><canvas id="chart" height="190"></canvas><div class="small">Your saved weigh-ins on this device.</div></div>
- <h3 class="section-title">Measurement history</h3><div class="card" id="measurelist"><div class="empty">No measurements yet.</div></div>
- <h3 class="section-title">Progressive overload</h3><div class="card"><p>When you can complete all planned reps with controlled technique, increase the load by the smallest practical increment. If form or recovery suffers, hold the weight or reduce volume.</p><div id="liftlist"><div class="empty">Save workout logs to see your recent loads.</div></div></div>
- <h3 class="section-title">Workout analytics</h3>
+ <details class="dash-section" id="measurementHistoryFold"><summary>Measurement history</summary><div class="section-content"><div class="card" id="measurelist"><div class="empty">No measurements yet.</div></div></div></details>
+ <details class="dash-section" id="progressiveOverloadFold"><summary>Progressive overload guidance</summary><div class="section-content"><p>When you can complete all planned reps with controlled technique, increase the load by the smallest practical increment. If form or recovery suffers, hold the weight or reduce volume.</p><div id="liftlist"><div class="empty">Save workout logs to see your recent loads.</div></div></div></details>
+ <details class="dash-section" id="workoutAnalyticsFold"><summary>Workout analytics <span class="small">STRENGTH · VOLUME · CONSISTENCY</span></summary><div class="section-content">
  <div class="card">
   <div class="field"><label>Exercise strength trend</label><select id="analyticsExercise"><option value="">Select an exercise</option></select></div>
   <div id="strengthTrend" class="chartbox"><div class="empty">Log loaded sets to see strength progression.</div></div>
@@ -600,7 +600,7 @@ input,select,textarea{max-width:100%;font-size:16px}
    <div class="stat"><div class="small">THIS WEEK</div><div class="metric" id="weekWorkouts">0</div><div class="small">workouts completed</div></div>
    <div class="stat"><div class="small">THIS MONTH</div><div class="metric" id="monthWorkouts">0</div><div class="small">workouts completed</div></div>
   </div>
- </div>
+ </div></div>
 </section>
 
 <section class="view" id="settings">
