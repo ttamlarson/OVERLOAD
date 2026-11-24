@@ -71,9 +71,19 @@ test("returns CORS preflight only for the configured origin", async () => {
   assert.equal(rejected.status, 403);
 });
 
-test("rejects invalid Access assertions before invoking rate limiting", async () => {
-  const response = await handleRequest(new Request("https://api.example/v1/coach", { method: "POST", headers: { Origin: "https://app.example", "cf-access-jwt-assertion": "not-a-valid-token" }, body: "{}" }), { OVERLOAD_ALLOWED_ORIGIN: "https://app.example", AI_ENABLED: "true" });
-  assert.equal(response.status, 401);
+test("uses the Cloudflare client IP for rate limiting without requiring third-party Access cookies", async () => {
+  let rateLimitKey = "";
+  const response = await handleRequest(new Request("https://api.example/v1/coach", {
+    method: "POST",
+    headers: { Origin: "https://app.example", "cf-connecting-ip": "203.0.113.7" },
+    body: "{}"
+  }), {
+    OVERLOAD_ALLOWED_ORIGIN: "https://app.example",
+    AI_ENABLED: "true",
+    AI_RATE_LIMITER: { limit: async ({ key }) => { rateLimitKey = key; return { success: true }; } }
+  });
+  assert.equal(rateLimitKey, "ip:203.0.113.7");
+  assert.equal(response.status, 400);
 });
 
 
