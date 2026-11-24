@@ -6,11 +6,11 @@ OVERLOAD is a performance training system for tracking training, nutrition, prog
 
 ## Product roadmap
 
-See [docs/PLATFORM_ROADMAP.md](docs/PLATFORM_ROADMAP.md) for the product delivery plan and [docs/COMMERCIAL_READINESS_PLAN.md](docs/COMMERCIAL_READINESS_PLAN.md) for the commercial launch, AI coaching, beta and revenue milestones.
+See [docs/PLATFORM_ROADMAP.md](docs/PLATFORM_ROADMAP.md) for the product delivery plan, [docs/COMMERCIAL_READINESS_PLAN.md](docs/COMMERCIAL_READINESS_PLAN.md) for the commercial launch plan, and [docs/AI_COACHING_API.md](docs/AI_COACHING_API.md) for the privacy-first AI coaching service design.
 
 ## Coaching and workout intelligence (5.4.0)
 
-The Coach workspace combines recent recovery check-ins, rolling workout frequency and same-day nutrition logs into transparent suggestions. The Training workspace includes a Workout Load Map with front/back muscle views for the current session or rolling seven-day completed/logged sets. Exercise-to-muscle estimates are transparent and deterministic; unknown exercises remain unmapped rather than guessed. These features are training aids, not medical assessments. Engines are isolated in `coach-engine.js` and `muscle-map.js` and covered by Node tests.
+The Coach workspace combines recent recovery check-ins, rolling workout frequency and same-day nutrition logs into transparent suggestions. The Training workspace includes a Workout Load Map with front/back muscle views for the current session or rolling seven-day completed/logged sets. Exercise-to-muscle estimates are transparent and deterministic; unknown exercises remain unmapped rather than guessed. These features are training aids, not medical assessments. Engines are isolated in `coach-engine.js` and `muscle-map.js` and covered by Node tests. The AI Worker foundation in `workers/ai-coach/` is disabled by default and requires Cloudflare Access, per-user rate limiting and server-side provider configuration before it can accept requests.
 
 ## Deploy to GitHub Pages
 
@@ -36,5 +36,6 @@ The app stores records locally in the browser on the device and does not automat
 - `sw.js` — service worker and offline app-shell cache
 - `apple-touch-icon.png` — iPhone Home Screen icon
 - `overload-mark.svg` — PWA/browser icon
+- `workers/ai-coach/` — disabled-by-default, privacy-first AI coaching Worker and tests
 - `.github/workflows/deploy-pages.yml` — GitHub Pages deployment workflow
 
