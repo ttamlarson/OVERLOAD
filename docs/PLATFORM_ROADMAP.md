@@ -49,7 +49,7 @@
 
 ### 5. AI coaching service
 
-- Provider-neutral coaching API behind a server-side service.
+- Provider-neutral coaching API behind a server-side service. A disabled-by-default Cloudflare Worker foundation now exists in `workers/ai-coach/`; see `docs/AI_COACHING_API.md` for the API contract, authentication boundary and deployment gates.
 - Send only the minimum context needed for each request.
 - Structured outputs for session suggestions, exercise substitutions, nutrition guidance and progress reviews.
 - Ground responses in the user's recorded history; label uncertainty and missing data.
