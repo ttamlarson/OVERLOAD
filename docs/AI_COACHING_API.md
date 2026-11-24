@@ -63,10 +63,11 @@ Success returns a concise structured result with a title, summary, suggestions, 
 1. Create a dedicated Cloudflare Worker from `workers/ai-coach/wrangler.toml.example`.
 2. Configure Worker variables: `AI_ENABLED=false`, `AI_MODEL`, `AI_API_BASE_URL`, `OVERLOAD_ALLOWED_ORIGIN`, `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD`.
 3. Add `AI_API_KEY` as a Worker secret. Never commit it.
-4. Configure a Cloudflare Access application for the Worker hostname and use its team domain and audience tag.
-5. Add a Cloudflare Rate Limiting binding named `AI_RATE_LIMITER`; choose conservative per-user limits and a low daily spend cap at the provider.
-6. Run tests, verify Access rejection, origin rejection, rate limiting and provider failure, then test with non-sensitive synthetic data.
-7. Keep `AI_ENABLED=false` until the PWA consent UI and privacy notice are released and reviewed.
+4. Set the exact Worker URL in the PWA `meta[name="overload-ai-endpoint"]` value and add that exact HTTPS hostname to the `connect-src` directive in the PWA Content Security Policy. Do not use a broad wildcard. Keep the endpoint metadata blank until both changes are reviewed.
+5. Configure a Cloudflare Access application for the Worker hostname and use its team domain and audience tag.
+6. Add a Cloudflare Rate Limiting binding named `AI_RATE_LIMITER`; choose conservative per-user limits and a low daily spend cap at the provider.
+7. Run tests, verify Access rejection, origin rejection, rate limiting and provider failure, then test with non-sensitive synthetic data.
+8. Keep `AI_ENABLED=false` until the PWA consent UI and privacy notice are released and reviewed.
 
 ## Tests
 
