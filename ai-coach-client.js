@@ -87,10 +87,10 @@
         : 'Training and nutrition information only — not medical advice.'
     };
   }
-  function validateProgramme(result) {
+  function validateProgramme(result, expectedDays) {
     if (!result || typeof result !== 'object' || !result.programme || typeof result.programme !== 'object') return null;
     const p=result.programme;
-    if (typeof p.name!=='string' || typeof p.description!=='string' || !Array.isArray(p.days) || p.days.length<1 || p.days.length>6) return null;
+    if (typeof p.name!=='string' || typeof p.description!=='string' || !Array.isArray(p.days) || p.days.length<1 || p.days.length>6 || (Number.isInteger(expectedDays) && p.days.length!==expectedDays)) return null;
     const days=p.days.map(day=>{
       if(!day || typeof day.name!=='string' || !Array.isArray(day.exercises) || day.exercises.length<3 || day.exercises.length>8) return null;
       const exercises=day.exercises.map(ex=>{
@@ -112,7 +112,7 @@
     const response=await fetchImpl(url,{method:'POST',credentials:'include',cache:'no-store',referrerPolicy:'no-referrer',headers:{'content-type':'application/json'},body:JSON.stringify({task:'programme_generation',consent:true,context})});
     let payload={};try{payload=await response.json()}catch{}
     if(!response.ok)throw new Error(payload.error||'AI programme generation is temporarily unavailable.');
-    const result=validateResult(payload.result),programme=validateProgramme(payload.result);
+    const result=validateResult(payload.result),programme=validateProgramme(payload.result, Number(context.daysPerWeek));
     if(!result||!programme)throw new Error('The generated programme did not pass validation. No programme was saved.');
     return {result,programme};
   }
