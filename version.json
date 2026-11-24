@@ -1,6 +1,6 @@
 {
   "app": "OVERLOAD",
-  "version": "5.14.3",
+  "version": "5.14.4",
   "releaseDate": "2026-11-24",
-  "notes": "Hardens backup restore validation with explicit schema-version checks, bounded record collections, legacy APEX/CORV compatibility and offline caching of the validator."
+  "notes": "Adds optional AI coaching review UI with explicit data preview and per-request consent; keeps the service disconnected until a protected Cloudflare endpoint is configured."
 }
