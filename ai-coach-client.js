@@ -116,6 +116,27 @@
     if(!result||!programme)throw new Error('The generated programme did not pass validation. No programme was saved.');
     return {result,programme};
   }
+  async function requestCoachChat(question, context, consent, fetchImpl = fetch) {
+    const prompt = String(question || '').trim().slice(0,700);
+    if (consent !== true) throw new Error('Consent is required before sending your question.');
+    if (prompt.length < 3) throw new Error('Enter a question of at least 3 characters.');
+    const url = endpoint();
+    if (!url) throw new Error('AI coaching is not connected yet. Your question has not been sent.');
+    let parsed;
+    try { parsed = new URL(url); } catch { throw new Error('AI coaching endpoint is not configured correctly.'); }
+    if (parsed.protocol !== 'https:') throw new Error('AI coaching requires a secure HTTPS endpoint.');
+    const response = await fetchImpl(url, {
+      method: 'POST', credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ task: 'coach_chat', consent: true, context: { question: prompt, trainingSummary: context || {} } })
+    });
+    let payload = {};
+    try { payload = await response.json(); } catch {}
+    if (!response.ok) throw new Error(payload.error || 'AI Coach is temporarily unavailable.');
+    const result = validateResult(payload.result);
+    if (!result) throw new Error('The AI response could not be verified. No training records were changed.');
+    return result;
+  }
   async function requestWeeklyReview(context, consent, fetchImpl = fetch) {
     if (consent !== true) throw new Error('Review the data preview and provide consent before sending anything.');
     const url = endpoint();
@@ -138,5 +159,5 @@
     if (!result) throw new Error('The AI response could not be verified. No training records were changed.');
     return result;
   }
-  window.OverloadAI = Object.freeze({ endpoint, buildWeeklyReview, requestWeeklyReview, requestProgrammeGeneration, validateResult, validateProgramme });
+  window.OverloadAI = Object.freeze({ endpoint, buildWeeklyReview, requestWeeklyReview, requestCoachChat, requestProgrammeGeneration, validateResult, validateProgramme });
 })();
