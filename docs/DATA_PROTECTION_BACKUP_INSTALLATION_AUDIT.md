@@ -1,12 +1,12 @@
 # OVERLOAD data protection, backup and installation audit
 
-**Source-reviewed release:** 5.14.3  
+**Source-reviewed release:** 5.14.4  
 **Remediation included:** 5.14.2 (offline icon caching and release consistency checks)  
 **Architecture:** static GitHub Pages PWA; local-first browser storage; no user accounts or automatic cloud sync.
 
 ## Executive summary
 
-OVERLOAD does not currently send workout, nutrition, measurement or recovery records to an OVERLOAD backend. The primary dataset is stored in browser localStorage under the legacy key `apexProtocolData_v1`, intentionally retained for migration compatibility. This means records are tied to the browser profile and site origin on one device. They do not automatically follow a user to another phone or computer.
+OVERLOAD does not currently send workout, nutrition, measurement or recovery records to an OVERLOAD backend. The primary dataset is stored in browser localStorage under the legacy key `apexProtocolData_v1`, intentionally retained for migration compatibility. This means records are tied to the browser profile and site origin on one device. The optional AI review panel is present but disconnected by default; only a compact, explicitly previewed and consented summary can be sent after an operator configures the protected Worker endpoint. They do not automatically follow a user to another phone or computer.
 
 This is a privacy advantage compared with a centrally hosted user database, but it is also a data-loss risk: clearing website data, losing a device, browser profile corruption, private-browsing cleanup or storage exhaustion can make records unavailable. Users must export and store their own backups.
 
@@ -19,6 +19,7 @@ This is a privacy advantage compared with a centrally hosted user database, but 
 | Save failures | Previous save path could throw on quota/storage errors; quiet persist failures were possible | Hardened with visible warning |
 | Backup export | JSON export existed; object URL was revoked immediately after click | Fixed with delayed URL cleanup and metadata |
 | Backup restore | Validation was minimal and safety copy depended on a legacy global not loaded by this app | Hardened in 5.14.3: shared tested validator, schema-version enforcement, bounded record collections, and a downloaded pre-restore safety backup |
+| AI coaching | Cloud AI was not connected to the browser client | 5.14.4 adds an optional exact-data preview, fresh per-request consent and a fixed deployment-time endpoint; remains disconnected until Cloudflare Access, rate limiting, CSP and Worker secrets are configured |
 | Restore compatibility | Legacy exports remain accepted when core record arrays are present | Preserved |
 | Offline shell | Service worker cache used query-string versions that did not match some script URLs | Fixed with query-insensitive cache matching and aligned core assets |
 | PWA identity | Manifest used stale icon query versions and did not explicitly include standard 192/512 PNG icons | Fixed |
@@ -68,6 +69,13 @@ Never test restore over a user's only copy of real records. Use a separate test 
 1. Open the live URL in a supported Chromium browser such as Chrome or Edge.
 2. Use the install icon in the address bar or browser menu → Install OVERLOAD.
 3. Launch from the installed app shortcut. The browser tab remains a supported fallback.
+
+## 5.14.4 source review update
+
+- Added an AI review panel to the Coach screen. The preview shows the exact compact weekly summary that will be sent; consent must be checked after previewing, and a new preview clears the previous consent.
+- The client sends no raw food entries, recovery notes, body measurements, private notes, or user identifiers. It uses the browser's Cloudflare Access session and does not embed provider credentials.
+- The endpoint metadata remains blank, AI stays disabled on the Worker, and the app CSP must be updated with the exact HTTPS Worker hostname before any connection can be enabled.
+- Added browser-client tests for minimisation, preview consent, HTTPS enforcement and credentialed requests. GitHub Actions passed on the 5.14.4 source changes.
 
 ## 5.14.3 source review update
 
