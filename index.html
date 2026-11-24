@@ -414,6 +414,7 @@ input,select,textarea{max-width:100%;font-size:16px}
  <button data-tab="training" data-icon="dumbbell">Train</button>
  <button data-tab="nutrition" data-icon="nutrition">Nutrition</button>
  <button data-tab="progress" data-icon="chart">Progress</button>
+ <button data-tab="recovery" data-icon="heart-pulse">Recovery</button>
  <button data-tab="coach" data-icon="activity">Coach</button>
 </nav>
 
@@ -439,7 +440,7 @@ input,select,textarea{max-width:100%;font-size:16px}
  <div class="hero">
   <div class="dashboard-kicker">OVERLOAD COACHING ENGINE / BETA</div>
   <h2 style="font-size:clamp(30px,5vw,46px)">TRAIN WITH<br>INTENTION.</h2>
-  <p>Your training, nutrition and recovery records are brought together to surface practical next steps. Recommendations are based on the information you log — not guesswork.</p>
+  <p>Your training and recovery records are brought together to surface practical next steps. Recommendations are based on the information you log — not guesswork.</p>
   <div class="row"><button class="btn" data-go="training">Open training</button><button class="btn secondary" data-go="recovery">Log recovery</button></div>
  </div>
  <div class="grid two">
@@ -448,7 +449,6 @@ input,select,textarea{max-width:100%;font-size:16px}
  </div>
 
  <details class="dash-section" open><summary>Training load <span class="small">ROLLING 7-DAY VIEW</span></summary><div class="section-content" id="coachLoad"><div class="empty">Log workouts to build your training-load view.</div></div></details>
- <details class="dash-section"><summary>Nutrition check <span class="small">TODAY'S INTAKE</span></summary><div class="section-content" id="coachNutrition"><div class="empty">Your nutrition summary will appear here.</div></div></details>
  <div class="card" id="aiCoachCard">
   <div class="dashboard-kicker">DAILY COACHING / AI ASSISTANT</div>
   <h3>Your coaching brief</h3>
@@ -500,6 +500,10 @@ input,select,textarea{max-width:100%;font-size:16px}
   <p class="small">AI suggestions are informational, may be inaccurate and are not medical advice. They never change your programme or records.</p>
  </div>
  <div class="notice">Your on-device coaching brief uses your logged records. The optional AI review is a separate cloud request and only runs after you give consent. Coaching is informational, not medical advice.</div>
+<section class="view" id="recovery">
+ <div class="eyebrow">RESTORE · ADAPT · PERFORM</div><h2>Recovery</h2>
+ <p class="small">Track sleep, energy, stress and soreness to understand how well you are recovering between sessions.</p>
+ <div class="card"><div class="small">READINESS INDICATOR</div><div class="metric" id="recoveryReadiness">—</div><div class="small" id="recoveryReadinessLabel">Log a recovery check-in to establish a baseline.</div><div class="bar"><span id="recoveryReadinessBar"></span></div></div>
 <details class="dash-section" id="recovery"><summary>Recovery check-in <span class="small">SLEEP · ENERGY · STRESS</span></summary><div class="section-content"><div class="card"><div class="formgrid">
   <div class="field"><label>Sleep (hours)</label><input id="sleep" type="number" min="0" max="24" step=".25" placeholder="6"></div>
   <div class="field"><label>Energy (1–5)</label><select id="energy"><option value="3">3 — Average</option><option value="1">1 — Very low</option><option value="2">2 — Low</option><option value="4">4 — Good</option><option value="5">5 — Excellent</option></select></div>
@@ -508,6 +512,7 @@ input,select,textarea{max-width:100%;font-size:16px}
   <div class="field"><label>Date</label><input id="rdate" type="date"></div>
  </div><div class="field" style="margin-top:10px"><label>Notes</label><textarea id="rnotes" rows="2" placeholder="Fatigue, hydration, nightshift..."></textarea></div><button class="btn" id="saverecovery" style="margin-top:12px">Save check-in</button></div>
  <h3 class="section-title">Recovery history</h3><div class="card" id="recoverylist"><div class="empty">No check-ins yet.</div></div></div></details>
+</section>
 </section>
 
 <section class="view" id="training">
@@ -1162,7 +1167,6 @@ function renderCoach(){
  $('coachSessionsLabel').textContent='Sessions in the last 7 days · '+report.previous7+' in the previous 7';
  $('coachBrief').innerHTML=report.recommendations.map(item=>'<div class="listitem"><strong>'+esc(item.title)+'</strong><div class="small">'+esc(item.detail)+'</div></div>').join('')+(report.lastWorkout?'<div class="listitem"><strong>Last logged session</strong><div class="small">'+esc(report.lastWorkout.type||'Workout')+' · '+dateText(report.lastWorkout.date)+'</div></div>':'');
  $('coachLoad').innerHTML='<div class="grid two"><div class="stat"><div class="small">LAST 7 DAYS</div><div class="metric">'+report.last7+'</div><div class="small">workouts logged</div></div><div class="stat"><div class="small">PREVIOUS 7 DAYS</div><div class="metric">'+report.previous7+'</div><div class="small">workouts logged</div></div><div class="stat"><div class="small">WORKING SETS · 7 DAYS</div><div class="metric">'+report.last7Volume.workingSets+'</div><div class="small">sets with logged weight and reps</div></div><div class="stat"><div class="small">VOLUME · 7 DAYS</div><div class="metric">'+Math.round(report.last7Volume.tonnage).toLocaleString()+' kg</div><div class="small">logged load × reps (tonnage)</div></div></div><p class="small">Tonnage is a simple training-volume measure, not a direct measure of fatigue or physiological stress. Compare trends alongside recovery and performance.</p>';
- $('coachNutrition').innerHTML='<div class="grid two"><div class="stat"><div class="small">ENERGY</div><div class="metric">'+Math.round(report.intake.calories)+' / '+report.calorieTarget+'</div><div class="small">'+report.caloriePercent+'% of daily target</div></div><div class="stat"><div class="small">PROTEIN</div><div class="metric">'+Math.round(report.intake.protein)+' / '+report.proteinTarget+' g</div><div class="small">'+report.proteinPercent+'% of daily target</div></div></div><div class="notice">Nutrition totals only include foods recorded for today. Missing entries are not treated as zero intake.</div><button class="btn secondary" data-go="nutrition">Open food log</button>';
 }
  const aiReady=!!(window.OverloadAI&&window.OverloadAI.endpoint());
  $('aiCoachStatus').textContent=aiReady?'Secure AI coaching endpoint configured. Choose a task and consent before sending preferences.':'AI coaching is not connected yet. Your records remain on this device.';
@@ -1364,11 +1368,11 @@ function init(){
 
  function sync(){state.current.type=$('wtype').value;state.current.date=$('wdate').value;state.current.duration=$('duration').value;state.current.notes=$('wnotes').value}
 function activateView(tab){
- if(tab==='recovery'){activateView('coach');$('recovery').open=true;$('recovery').scrollIntoView({behavior:'smooth',block:'start'});return}
  const target=$(tab);if(!target)return;
  document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===tab));
  if(tab==='coach')renderCoach();
+  if(tab==='recovery')renderRecovery();
  if(tab==='progress'){drawChart([...state.measurements].sort((a,b)=>a.date.localeCompare(b.date)));renderAnalytics()}
 }
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>activateView(b.dataset.tab));
