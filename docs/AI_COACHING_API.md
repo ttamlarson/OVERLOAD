@@ -53,7 +53,7 @@ Body:
 }
 ```
 
-Success returns a concise structured result with a title, summary, suggestions, data-used list, limitations and a non-medical disclaimer. No programme, target or log changes are performed.
+Success returns a concise structured result with a title, summary, suggestions, data-used list, limitations and a non-medical disclaimer, plus provider token-usage counts when supplied. No programme, target or log changes are performed. Render model text as text (for example, with `textContent` or the app's escaping helper); never inject model output as raw HTML.
 
 ## Deployment configuration
 
