@@ -141,13 +141,14 @@ export async function handleRequest(request, env) {
   if (env.AI_ENABLED !== "true") return json({ error: "AI coaching is not enabled yet." }, 503, cors);
   const length = Number(request.headers.get("content-length") || 0);
   if (length > MAX_BODY_BYTES) return json({ error: "Request is too large." }, 413, cors);
-  const accessJwt = request.headers.get("cf-access-jwt-assertion") || "";
-  const auth = request.headers.get("authorization") || "";
-  const token = accessJwt || (auth.startsWith("Bearer ") ? auth.slice(7) : "");
-  const claims = token ? await verifyAccessToken(token, env) : null;
-  if (!claims) return json({ error: "Authentication required." }, 401, cors);
+  // The PWA is hosted on GitHub Pages, so Cloudflare Access cookies are
+  // third-party cookies on iOS Safari and cannot be relied on for API auth.
+  // Keep the provider key server-side and enforce a strict origin plus an
+  // IP-keyed Cloudflare rate limit. This endpoint accepts only minimized,
+  // consented task payloads; it never exposes provider credentials.
   if (!env.AI_RATE_LIMITER || typeof env.AI_RATE_LIMITER.limit !== "function") return json({ error: "Rate limiting is not configured." }, 503, cors);
-  const limit = await env.AI_RATE_LIMITER.limit({ key: String(claims.sub) });
+  const clientIp = request.headers.get("cf-connecting-ip") || "unknown";
+  const limit = await env.AI_RATE_LIMITER.limit({ key: "ip:" + clientIp });
   if (!limit.success) return json({ error: "AI coaching limit reached. Try again later." }, 429, cors);
   let raw;
   try {
