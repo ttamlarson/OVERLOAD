@@ -83,7 +83,13 @@ Never test restore over a user's only copy of real records. Use a separate test 
 - The validator is included in the service-worker core cache so restore validation remains available offline.
 - Automated CI now runs the backup validation tests alongside the existing application and AI Worker tests.
 
-## 5.14.2 source review update\n\n- The service-worker precache now includes the 192 px and 512 px PNG icons referenced by the web app manifest, alongside the Apple touch icon.\n- The validation workflow now checks release-version consistency across `version.json`, the update manager, beta feedback form, service-worker cache name and cache-busted HTML asset URLs. It also checks that service-worker core assets and manifest icons exist in the repository.\n- These are source-level safeguards. They do not replace physical-device install, offline, update or backup/restore testing. The third-party QR scanner remains externally loaded from unpkg without a verified Subresource Integrity hash, and the current CSP still permits inline scripts and styles.\n\n## Release verification checklist
+## 5.14.2 source review update
+
+- The service-worker precache now includes the 192 px and 512 px PNG icons referenced by the web app manifest, alongside the Apple touch icon.
+- The validation workflow now checks release-version consistency across `version.json`, the update manager, beta feedback form, service-worker cache name and cache-busted HTML asset URLs. It also checks that service-worker core assets and manifest icons exist in the repository.
+- These are source-level safeguards. They do not replace physical-device install, offline, update or backup/restore testing. The third-party QR scanner remains externally loaded from unpkg without a verified Subresource Integrity hash, and the current CSP still permits inline scripts and styles.
+
+## Release verification checklist
 
 - [ ] Install from the production Pages URL on real iPhone Safari.
 - [ ] Install from Chrome on Android.
