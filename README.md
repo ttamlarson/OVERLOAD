@@ -8,9 +8,9 @@ OVERLOAD is a performance training system for tracking training, nutrition, prog
 
 See [docs/PLATFORM_ROADMAP.md](docs/PLATFORM_ROADMAP.md) for the product delivery plan, [docs/COMMERCIAL_READINESS_PLAN.md](docs/COMMERCIAL_READINESS_PLAN.md) for the commercial launch plan, and [docs/AI_COACHING_API.md](docs/AI_COACHING_API.md) for the privacy-first AI coaching service design.
 
-## Coaching and workout intelligence (5.4.0)
+## Coaching and workout intelligence (5.14.4)
 
-The Coach workspace combines recent recovery check-ins, rolling workout frequency and same-day nutrition logs into transparent suggestions. The Training workspace includes a Workout Load Map with front/back muscle views for the current session or rolling seven-day completed/logged sets. Exercise-to-muscle estimates are transparent and deterministic; unknown exercises remain unmapped rather than guessed. These features are training aids, not medical assessments. Engines are isolated in `coach-engine.js` and `muscle-map.js` and covered by Node tests. The AI Worker foundation in `workers/ai-coach/` is disabled by default and requires Cloudflare Access, per-user rate limiting and server-side provider configuration before it can accept requests.
+The Coach workspace combines recent recovery check-ins, rolling workout frequency and same-day nutrition logs into transparent suggestions. The Training workspace includes a Workout Load Map with front/back muscle views for the current session or rolling seven-day completed/logged sets. Exercise-to-muscle estimates are transparent and deterministic; unknown exercises remain unmapped rather than guessed. These features are training aids, not medical assessments. Engines are isolated in `coach-engine.js` and `muscle-map.js` and covered by Node tests. The Coach screen now includes an optional AI review panel. It previews the exact compact weekly summary and requires fresh consent for each request. The browser client in `ai-coach-client.js` sends no raw food entries, recovery notes or measurements. The endpoint remains blank and the Worker in `workers/ai-coach/` remains disabled until the Cloudflare Access application, per-user rate limiting, exact-host CSP allow-list and server-side provider secret are configured.
 
 ## Deploy to GitHub Pages
 
@@ -34,6 +34,8 @@ The app stores records locally in the browser on the device and does not automat
 - `index.html` — complete app
 - `manifest.webmanifest` — OVERLOAD PWA name, launch behavior and icon declarations
 - `sw.js` — service worker and offline app-shell cache
+- `backup-validation.js` — bounded backup schema validation
+- `ai-coach-client.js` — consent-gated, minimized AI review client
 - `apple-touch-icon.png` — iPhone Home Screen icon
 - `overload-mark.svg` — PWA/browser icon
 - `workers/ai-coach/` — disabled-by-default, privacy-first AI coaching Worker and tests
