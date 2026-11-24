@@ -2,6 +2,9 @@
 
 ## Current status
 
+The Coach also supports consent-based programme generation. It sends only the selected goal, focus, weekly frequency, session duration, experience band, equipment list and split preference. The Worker allow-lists and bounds these fields, requires a structured programme response, and validates day and exercise limits. Generated drafts remain unsaved until the user explicitly saves them to the existing local programme library. No workout, food, recovery or measurement history is sent for this task.
+
+
 The PWA now includes an optional Coach-screen AI review panel. It previews the exact compact summary snapshot, requires a fresh per-request consent checkbox after each preview, sends only the allow-listed weekly-review fields, uses a strict GitHub Pages origin allow-list and an IP-keyed Cloudflare rate limit, and renders returned model text as escaped text. The Worker enforces the request-size limit while streaming the body rather than buffering an oversized body first. The endpoint metadata points to the Worker hostname. The Worker uses exact-origin checks and per-IP rate limiting rather than Cloudflare Access browser cookies. The panel remains local-only and reports that it is disconnected in the meantime.
 
 
@@ -27,6 +30,7 @@ The deterministic browser coaching engine remains the offline baseline. This Wor
 | `exercise_substitution` | Exercise name, training goal, equipment list and experience band |
 | `programme_explanation` | Programme name, goal, weekly frequency and exercise names |
 | `nutrition_pattern` | Aggregate averages, targets and logged-day count |
+| `programme_generation` | Goal, focus, days per week, session duration, experience band, equipment list and split preference |
 
 The request intentionally excludes user identifiers, exact body measurements, free-text recovery notes, individual food records, medical diagnoses and injury descriptions.
 
