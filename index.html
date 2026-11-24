@@ -5,9 +5,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<link rel="manifest" href="./manifest.webmanifest?v=5.14.2">
-<link rel="icon" href="./overload-mark.svg?v=5.14.2" type="image/svg+xml">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.14.2">
+<link rel="manifest" href="./manifest.webmanifest?v=5.14.3">
+<link rel="icon" href="./overload-mark.svg?v=5.14.3" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.14.3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OVERLOAD">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -638,10 +638,11 @@ input,select,textarea{max-width:100%;font-size:16px}
 <div id="toast" class="hidden" role="status"></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="./muscle-map.js?v=5.14.2"></script>
+<script src="./muscle-map.js?v=5.14.3"></script>
 <script src="./coach-engine.js"></script>
-<script src="./personal-records.js?v=5.14.2"></script>
-<script src="./programme-templates.js?v=5.14.2"></script>
+<script src="./personal-records.js?v=5.14.3"></script>
+<script src="./programme-templates.js?v=5.14.3"></script>
+<script src="./backup-validation.js?v=5.14.3"></script>
 <script>
 (() => {
 'use strict';
@@ -1520,16 +1521,8 @@ $('import').onchange=async e=>{
  try{
   if(f.size>25*1024*1024)throw new Error('This backup is larger than 25 MB. Choose a smaller or uncompressed JSON backup.');
   const v=JSON.parse(await f.text());
-  if(!v||typeof v!=='object'||Array.isArray(v))throw new Error('The selected file is not a valid OVERLOAD backup.');
-  if(v.app&& !['OVERLOAD','APEX','CORV'].includes(String(v.app).toUpperCase()))throw new Error('This file does not appear to be an OVERLOAD backup.');
-  for(const key of ['workouts','foods','measurements']){
-   if(!Array.isArray(v[key])||v[key].some(item=>!item||typeof item!=='object'||Array.isArray(item)))throw new Error('Backup is missing valid '+key+' records.');
-  }
-  for(const key of ['recoveries','routines','cardio']){
-   if(v[key]!==undefined&&(!Array.isArray(v[key])||v[key].some(item=>!item||typeof item!=='object'||Array.isArray(item))))throw new Error('Backup contains invalid '+key+' records.');
-  }
-  if(v.settings!==undefined&&(!v.settings||typeof v.settings!=='object'||Array.isArray(v.settings)))throw new Error('Backup settings are invalid.');
-  if(v.current!==undefined&&(!v.current||typeof v.current!=='object'||Array.isArray(v.current)))throw new Error('Backup current workout is invalid.');
+  const validation=window.OverloadBackup?.validateBackup(v);
+  if(!validation||!validation.valid)throw new Error(validation?.error||'Backup validation is unavailable. Update OVERLOAD before restoring.');
   if(confirm('Replace the records on this device with this backup? OVERLOAD will download a separate safety copy of your current records first.')){
    if(storageLoadError)throw new Error('Current browser data could not be read, so restore is disabled to protect it.');
    downloadBackup('overload-pre-restore-safety-'+today()+'.json',state);
@@ -1684,7 +1677,7 @@ if(state.current.exercises.length)renderExercises();else setPlan(state.current.t
 render();
 })();
 </script>
-<script src="./beta-feedback.js?v=5.14.2"></script>
+<script src="./beta-feedback.js?v=5.14.3"></script>
 <script src="./update.js"></script>
 <script>
 if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {
