@@ -419,7 +419,7 @@ input,select,textarea{max-width:100%;font-size:16px}
  <button data-tab="training" data-icon="dumbbell">Train</button>
  <button data-tab="nutrition" data-icon="nutrition">Nutrition</button>
  <button data-tab="progress" data-icon="chart">Progress</button>
- <button data-tab="recovery" data-icon="heart">Recovery</button>
+ <button data-tab="recovery" data-icon="recovery">Recovery</button>
  <button data-tab="coach" data-icon="activity">Coach</button>
 </nav>
 
@@ -1324,6 +1324,7 @@ function init(){
   nutrition:'<path d="M12 21c-5-3-8-7-8-11a4 4 0 0 1 8-1 4 4 0 0 1 8 1c0 4-3 8-8 11Z"/><path d="M12 9v7"/>',
   chart:'<path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/>',
   heart:'<path d="M20.8 8.8c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11a4.7 4.7 0 0 1 8.8-2.2 4.7 4.7 0 0 1 8.8 2.2Z"/>',
+  recovery:'<path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/><path d="m16.5 3 .6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6.6-1.4Z"/>',
   settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6v-2.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5V5h2.6v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2v2.6h-.2a1.7 1.7 0 0 0-1.5 1Z"/>'
  };
  document.querySelectorAll('[data-icon]').forEach(b=>{const p=OVERLOAD_ICONS[b.dataset.icon];if(p){const i=document.createElement('span');i.className='nav-ico';i.setAttribute('aria-hidden','true');i.innerHTML='<svg viewBox="0 0 24 24">'+p+'</svg>';b.prepend(i)}});
