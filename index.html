@@ -1537,6 +1537,7 @@ function downloadBackup(filename,source=state){
 let aiPreviewSnapshot=null;
 $('aiPreviewButton').onclick=()=>{
  aiPreviewSnapshot=window.OverloadAI.buildWeeklyReview(state,today());
+ $('aiConsent').checked=false;$('aiGenerate').disabled=true;
  $('aiDataPreview').textContent=JSON.stringify({task:aiPreviewSnapshot.task,context:aiPreviewSnapshot.context},null,2);
  $('aiDataPreview').hidden=!$('aiDataPreview').hidden;
  $('aiPreviewButton').textContent=$('aiDataPreview').hidden?'Preview data to be sent':'Hide data preview';
