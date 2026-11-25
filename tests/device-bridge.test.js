@@ -15,5 +15,7 @@ test('device bridge preserves the canonical legacy storage key and is read-only'
 test('widget projection excludes free-text notes and food names', () => {
   assert.match(source, /todayWorkout/);
   assert.match(source, /nutrition/);
+  assert.match(source, /personalRecords/);
+  assert.match(source, /window\.OverloadPR/);
   assert.doesNotMatch(source, /foodNames/);
 });
