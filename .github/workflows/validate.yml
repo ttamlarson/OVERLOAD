@@ -15,7 +15,7 @@ jobs:
         run: |
           node --check beta-feedback.js
           node --check backup-validation.js
-          node --check ai-coach-client.js
+          node --check ai-coach-client.js\n          node --check device-bridge.js
           node --check sw.js
           node --check update.js
           node --check workers/ai-coach/src/index.mjs
@@ -64,4 +64,4 @@ jobs:
           console.log(`Validated ${scripts.length} inline script blocks and PWA JSON metadata.`);
           NODE
       - name: Run coaching engine and AI API tests
-        run: node --test tests/ai-coach-client.test.mjs tests/backup-validation.test.js tests/coach-engine.test.js tests/muscle-map.test.js tests/personal-records.test.js tests/programme-templates.test.js workers/ai-coach/test/worker.test.mjs
+        run: node --test tests/ai-coach-client.test.mjs tests/backup-validation.test.js tests/coach-engine.test.js tests/muscle-map.test.js tests/personal-records.test.js tests/programme-templates.test.js tests/device-bridge.test.js workers/ai-coach/test/worker.test.mjs
