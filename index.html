@@ -1355,7 +1355,7 @@ function init(){
  // Keep built-in workouts in one list; only user-created/recovered programmes appear as additional options.
  ensureProgrammeTemplates();
  const s=$('wtype'),t=state.current.type||'Upper A';
- const standard=Object.keys(plans);
+ const standard=Object.keys(plans).filter(name=>!state.deletedStandardWorkouts.includes(name));
  const saved=state.programmeTemplates.filter(template=>String(template.id).startsWith('legacy-')||!['upper-lower','push-pull-legs'].includes(template.id))
   .flatMap(template=>(template.days||[]).map(day=>({value:'programme:'+template.id+':'+day.id,label:template.name+' — '+day.name})));
  s.replaceChildren();
@@ -1466,6 +1466,13 @@ document.querySelectorAll('[data-workout]').forEach(card => {
 $('addProgramme').onclick=createProgramme;
 $('programmeTemplates').onclick=e=>{
  const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.standardDelete){
+  const name=b.dataset.standardDelete;
+  if(!confirm(`Delete the standard workout “${name}” from your workout library? Completed workout history will not be deleted.`))return;
+  if(!Array.isArray(state.deletedStandardWorkouts))state.deletedStandardWorkouts=[];
+  if(!state.deletedStandardWorkouts.includes(name))state.deletedStandardWorkouts.push(name);
+  save();renderProgrammeTemplates();init();toast('Standard workout deleted');return;
+ }
  if(b.dataset.templateEdit){editProgrammeTemplate(b.dataset.templateEdit);return}
  if(b.dataset.templateDelete){
   const template=state.programmeTemplates.find(item=>item.id===b.dataset.templateDelete);if(!template)return;
