@@ -2024,26 +2024,7 @@ if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNat
  </div></div>
 </section>
 
-<section class="view" id="settings">
- <div class="eyebrow">YOUR RECORDS</div><h2>Settings & backups</h2>
- <div class="card"><h3>Daily targets</h3><div class="formgrid">
-  <div class="field"><label>Calories (kcal)</label><input id="ctarget" type="number" min="1" value="2800"></div>
-  <div class="field"><label>Protein (g)</label><input id="ptarget" type="number" min="1" value="130"></div>
-  <div class="field"><label>Fat target (% of calories)</label><input id="fatpercent" type="number" min="10" max="50" step="1" value="27"></div>
- </div><button class="btn" id="savesettings" style="margin-top:12px">Save targets</button></div>
- <div class="card appearance-card"><div class="between appearance-heading"><div><h3>Appearance</h3><p>Eight tuned colour systems. Choose a look; your preference stays on this device.</p></div><span class="pill">8 THEMES</span></div><label class="theme-picker-label" for="themeSelect">Performance theme</label><select id="themeSelect" class="theme-native-select" aria-label="Performance theme"><option value="apex">BLACKOUT — Obsidian</option><option value="midnight">Midnight Blue</option><option value="forest">Forest Green</option><option value="ember">Ember</option><option value="light">Light</option><option value="crimson">Crimson Edge</option><option value="arctic">Arctic Steel</option><option value="tactical">Tactical Olive</option></select><div class="theme-grid" role="group" aria-label="Choose a performance theme"><button type="button" class="theme-option" data-theme-choice="apex" aria-pressed="true"><span class="theme-preview preview-apex"><i></i><i></i><i></i></span><strong>BLACKOUT</strong><small>Obsidian · Signal red</small></button><button type="button" class="theme-option" data-theme-choice="midnight" aria-pressed="false"><span class="theme-preview preview-midnight"><i></i><i></i><i></i></span><strong>MIDNIGHT</strong><small>Deep navy · Electric blue</small></button><button type="button" class="theme-option" data-theme-choice="forest" aria-pressed="false"><span class="theme-preview preview-forest"><i></i><i></i><i></i></span><strong>FOREST</strong><small>Evergreen · Mineral green</small></button><button type="button" class="theme-option" data-theme-choice="ember" aria-pressed="false"><span class="theme-preview preview-ember"><i></i><i></i><i></i></span><strong>EMBER</strong><small>Charcoal · Burnt copper</small></button><button type="button" class="theme-option" data-theme-choice="light" aria-pressed="false"><span class="theme-preview preview-light"><i></i><i></i><i></i></span><strong>LIGHT</strong><small>Porcelain · Signal red</small></button><button type="button" class="theme-option" data-theme-choice="crimson" aria-pressed="false"><span class="theme-preview preview-crimson"><i></i><i></i><i></i></span><strong>CRIMSON EDGE</strong><small>Blackout · Crimson</small></button><button type="button" class="theme-option" data-theme-choice="arctic" aria-pressed="false"><span class="theme-preview preview-arctic"><i></i><i></i><i></i></span><strong>ARCTIC STEEL</strong><small>Graphite · Ice blue</small></button><button type="button" class="theme-option" data-theme-choice="tactical" aria-pressed="false"><span class="theme-preview preview-tactical"><i></i><i></i><i></i></span><strong>TACTICAL</strong><small>Field green · Olive</small></button></div><div class="theme-current"><span class="theme-current-dot"></span><span id="themeDescription" aria-live="polite">BLACKOUT · obsidian black, gunmetal and steel. OVERLOAD signature colourway.</span></div></div>
- <div class="card"><h3>Backup & restore</h3>
- <p>Records are stored locally in this browser. Export regularly and keep a copy in iCloud, Google Drive, or email so you can restore on another device.</p>
- <div class="row">
-  <button class="btn" id="export">Export JSON backup</button>
-  <button class="btn secondary" id="copyBackup">Copy backup to clipboard</button>
-  <label class="btn secondary" for="import">Import backup</label>
-  <input class="hidden" id="import" type="file" accept=".json,application/json">
- </div>
- <p class="small">Restoring replaces records on this device. OVERLOAD downloads a safety copy of your current records first. Only restore a backup you trust. There is no automatic cloud sync.</p>
-</div>
- <div class="card"><h3>Local storage</h3><p>Your records stay in this browser on this device. They are not protected by an online account or automatic cloud backup. Anyone with access to your unlocked device and browser profile may be able to access them. Clearing browser data, private browsing cleanup, device loss or browser storage failure can erase them.</p><button class="btn danger" id="erase">Delete all app data</button></div>
-</section>
+
 <footer>OVERLOAD · BUILT UNDER PRESSURE.</footer>
 </div>
 <div id="scannerOverlay" class="hidden" role="dialog" aria-modal="true" aria-label="OVERLOAD Scan Centre">
