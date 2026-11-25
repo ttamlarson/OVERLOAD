@@ -1329,10 +1329,15 @@ function init(){
  const d=today();
  $('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
  ['wdate','fdate','mdate','rdate','cdate'].forEach(k=>{if($(k))$(k).value=d});
- // FIX: make sure the dropdown has an option for the current type (e.g. a saved routine name)
- const t=state.current.type||'Upper A',s=$('wtype');
- if(![...s.options].some(o=>o.value===t)){const o=document.createElement('option');o.value=o.textContent=t;s.appendChild(o)}
- s.value=t;
+ // Populate the workout selector with saved programme days as well as built-in workouts.
+ ensureProgrammeTemplates();
+ const s=$('wtype'),t=state.current.type||'Upper A';
+ s.innerHTML='<optgroup label="Standard workouts">'+Object.keys(plans).map(name=>'<option value="'+esc(name)+'">'+esc(name)+'</option>').join('')+'</optgroup>'+
+  (state.programmeTemplates.length?'<optgroup label="Saved programme days">'+state.programmeTemplates.flatMap(template=>template.days.map(day=>'<option value="programme:'+esc(template.id)+':'+esc(day.id)+'">'+esc(template.name)+' — '+esc(day.name)+'</option>')).join('')+'</optgroup>':'');
+ const matching=[...s.options].find(option=>option.value===t||option.textContent.endsWith(' — '+t));
+ if(matching)s.value=matching.value;
+ else if(t&&!Object.keys(plans).includes(t)){const o=document.createElement('option');o.value=o.textContent=t;s.appendChild(o);s.value=t}
+ else s.value=t;
  $('wdate').value=state.current.date||d;
  $('duration').value=state.current.duration||'';
  $('wnotes').value=state.current.notes||'';
@@ -1485,7 +1490,14 @@ if(workoutMapFold){
  workoutMapFold.open=localStorage.getItem(foldKey)==='open';
  workoutMapFold.addEventListener('toggle',()=>localStorage.setItem(foldKey,workoutMapFold.open?'open':'closed'));
 }
-$('loadplan').onclick=()=>{sync();setPlan($('wtype').value);persist();toast('Workout loaded')};
+$('loadplan').onclick=()=>{
+ const selected=$('wtype').value;
+ if(selected.startsWith('programme:')){
+  const [,templateId,dayId]=selected.split(':');
+  startProgrammeTemplateDay(templateId,dayId);return;
+ }
+ sync();setPlan(selected);persist();toast('Workout loaded')
+};
 $('addex').onclick=()=>{state.current.exercises.push(newEx('New exercise'));renderExercises();persist()};
 $('exercises').oninput=e=>{const t=e.target;if(t.dataset.name){const x=state.current.exercises.find(a=>a.id===t.dataset.name);if(x)x.name=t.value}if(t.dataset.set){const x=state.current.exercises.find(a=>a.id===t.dataset.set),s=x?.sets[+t.dataset.i];if(s)s[t.dataset.key]=t.value;renderWorkoutMap()}
  // FIX: keep a half-finished workout across reloads
