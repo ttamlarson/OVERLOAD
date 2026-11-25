@@ -1246,8 +1246,9 @@ let templateDraft=null;
 let creatingProgramme=false;
 function ensureProgrammeTemplates(){
  if(!Array.isArray(state.programmeTemplates))state.programmeTemplates=[];
- if(state.programmeTemplates.length===0&&Array.isArray(state.routines)&&state.routines.length){
-  const imported=state.routines.filter(r=>r&&Array.isArray(r.exercises)&&r.exercises.length).map((r,index)=>({
+ if(Array.isArray(state.routines)&&state.routines.length){
+  const known=new Set(state.programmeTemplates.map(p=>p.id));
+  const imported=state.routines.filter((r,index)=>r&&Array.isArray(r.exercises)&&r.exercises.length&&!known.has('legacy-'+String(r.id||('routine-'+index)))).map((r,index)=>({
    id:'legacy-'+String(r.id||('routine-'+index)),name:String(r.name||'Saved routine '+(index+1)),
    description:'Recovered from your existing saved routines',
    days:[{id:'legacy-day-'+String(r.id||('routine-'+index)),name:String(r.name||'Workout'),exercises:r.exercises.map(ex=>({
@@ -1256,12 +1257,9 @@ function ensureProgrammeTemplates(){
     target:String(ex.target||ex.reps||'8–12')
    }))}]
   }));
-  if(imported.length){state.programmeTemplates=imported;persist()}
+  if(imported.length){state.programmeTemplates.push(...imported);persist()}
  }
- if(state.programmeTemplates.length===0){
-  state.programmeTemplates=window.OverloadProgrammeTemplates.createDefaults(plans);
-  persist();
- }
+ if(state.programmeTemplates.length===0){state.programmeTemplates=window.OverloadProgrammeTemplates.createDefaults(plans);persist()}
 }
 function renderProgrammeTemplates(){
  ensureProgrammeTemplates();
