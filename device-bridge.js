@@ -111,6 +111,21 @@
       if (!plugin || typeof plugin.acknowledgeWatchSession !== 'function') return Promise.resolve({ acknowledged: false });
       return plugin.acknowledgeWatchSession({ sessionId });
     },
+    startWorkoutActivity(options = {}) {
+      const plugin = nativePlugin();
+      if (!plugin || typeof plugin.startWorkoutActivity !== 'function') return Promise.resolve({ started: false, reason: 'unsupported' });
+      return plugin.startWorkoutActivity(options);
+    },
+    updateWorkoutActivity(options = {}) {
+      const plugin = nativePlugin();
+      if (!plugin || typeof plugin.updateWorkoutActivity !== 'function') return Promise.resolve({ updated: false, reason: 'unsupported' });
+      return plugin.updateWorkoutActivity(options);
+    },
+    endWorkoutActivity(options = {}) {
+      const plugin = nativePlugin();
+      if (!plugin || typeof plugin.endWorkoutActivity !== 'function') return Promise.resolve({ ended: false, reason: 'unsupported' });
+      return plugin.endWorkoutActivity(options);
+    },
     subscribe(callback) {
       if (typeof callback !== 'function') return () => {};
       const handler = event => callback(event.detail);
