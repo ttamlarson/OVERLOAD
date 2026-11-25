@@ -1,8 +1,8 @@
 {
   "app": "OVERLOAD",
-  "version": "5.14.8",
-  "releaseDate": "2026-11-24",
-  "notes": "Adds consent-based AI programme generation with structured programme validation and save-to-library review flow.",
+  "version": "5.15.17",
+  "releaseDate": "2026-11-26",
+  "notes": "Adds the first local-first device snapshot bridge for native widgets and wearable integrations.",
   "releaseNotes": [
     "Merged AI coaching review into the daily coaching brief",
     "Kept AI programme generation inside the unified Coach experience"
