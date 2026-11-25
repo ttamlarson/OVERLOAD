@@ -33,6 +33,9 @@
     const foods = Array.isArray(state.foods) ? state.foods : [];
     const todayFoods = foods.filter(item => dateKey(item.date) === today);
     const todayWorkout = workouts.find(item => dateKey(item.date) === today) || null;
+    const personalRecords = window.OverloadPR && typeof window.OverloadPR.calculate === 'function'
+      ? window.OverloadPR.calculate(workouts)
+      : { bench: null, squat: null, deadlift: null };
     const weekStart = new Date();
     weekStart.setHours(0, 0, 0, 0);
     weekStart.setDate(weekStart.getDate() - 6);
@@ -61,7 +64,7 @@
         calories: number(state.settings && state.settings.calories),
         protein: number(state.settings && state.settings.protein)
       },
-      personalRecords: { bench: null, squat: null, deadlift: null },
+      personalRecords,
       activeWorkout: state.current && Array.isArray(state.current.exercises) && state.current.exercises.length ? {
         name: String(state.current.type || 'Workout').slice(0, 48),
         exerciseCount: state.current.exercises.length,
