@@ -1911,7 +1911,8 @@ $('resettimer').onclick = () => { setTimer(90); };
 window.addEventListener('resize',()=>{if($('progress').classList.contains('active'))drawChart([...state.measurements].sort((a,b)=>a.date.localeCompare(b.date)))});
 init();
 if(state.current.exercises.length)renderExercises();else setPlan(state.current.type||'Upper A');
-render();
+try{render()}catch(error){console.error('OVERLOAD general render failed',error)}
+try{renderProgrammeTemplates()}catch(error){console.error('OVERLOAD programme library render failed',error)}
 })();
 </script>
 <script src="./beta-feedback.js?v=5.14.8"></script>
