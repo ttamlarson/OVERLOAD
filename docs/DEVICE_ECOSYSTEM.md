@@ -14,7 +14,7 @@
 
 - `device-bridge.js` observes writes to the existing localStorage key and publishes a versioned, minimized `overload:device-snapshot` event.
 - The bridge also calls the optional Capacitor plugin `OverloadDeviceBridge.publishSnapshot` when that native plugin is installed. Without it, the PWA works as before.
-- Snapshot schema v1 includes today's workout summary, weekly workout count, today's calories/protein and targets, and a placeholder for verified strength records. It never exposes free-text notes or food names.
+- Snapshot schema v1 includes today's workout summary, weekly workout count, today's calories/protein and targets, plus the existing Big Three working-set PR calculation (bench, squat and deadlift). It never exposes free-text notes or food names.
 - Native integration sources live in the `OVERLOAD-IOS` repository. The iOS Capacitor bridge is now registered by the generated native app; the Android Capacitor bridge and Glance widget are configured by a repeatable build script. Both remain separate from the PWA's canonical records.
 
 ## Platform delivery
