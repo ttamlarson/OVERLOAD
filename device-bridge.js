@@ -15,15 +15,20 @@
     } catch (_) { return null; }
   };
   const number = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+  const localDateKey = date => {
+    const pad = value => String(value).padStart(2, '0');
+    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+  };
   const dateKey = value => {
     if (!value) return '';
+    if (typeof value === 'string' && /^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return value;
     const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? String(value).slice(0, 10) : d.toISOString().slice(0, 10);
+    return Number.isNaN(d.getTime()) ? String(value).slice(0, 10) : localDateKey(d);
   };
   const buildSnapshot = () => {
     const state = readState();
     if (!state) return null;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDateKey(new Date());
     const workouts = Array.isArray(state.workouts) ? state.workouts : [];
     const foods = Array.isArray(state.foods) ? state.foods : [];
     const todayFoods = foods.filter(item => dateKey(item.date) === today);
@@ -72,7 +77,10 @@
     window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: snapshot }));
     try {
       const bridge = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.OverloadDeviceBridge;
-      if (bridge && typeof bridge.publishSnapshot === 'function') bridge.publishSnapshot({ snapshot });
+      if (bridge && typeof bridge.publishSnapshot === 'function') {
+        const result = bridge.publishSnapshot({ snapshot });
+        if (result && typeof result.catch === 'function') result.catch(() => {});
+      }
     } catch (_) { /* Native bridge is optional; browser/PWA operation is unaffected. */ }
   };
   const schedule = () => {
