@@ -21,17 +21,17 @@
 
 ### Apple
 
-- WidgetKit / SwiftUI extension: small, medium and lock-screen widget families; timeline refresh is best-effort and OS scheduled.
+- WidgetKit / SwiftUI extension: the iOS configure script now generates and embeds a dedicated extension target with small, medium and Lock Screen widget families plus Live Activity/Dynamic Island sources; timeline refresh is best-effort and OS scheduled.
 - App Group `group.com.overload.performance` is the shared snapshot boundary between the iOS app and widget extension.
 - Capacitor plugin writes the minimized snapshot to the App Group. The iOS app target is configured with the `group.com.overload.performance` entitlement; this App Group must still be enabled in the Apple Developer account and shared with the WidgetKit extension before physical-device distribution.
 - Live Activities use ActivityKit for an active workout/rest timer. Start/update/end must be driven by explicit workout lifecycle events; no fake background timer guarantees.
-- Apple Watch companion uses WatchConnectivity and an independent watch-side workout session. Workout recording must continue without the phone and reconcile on reconnect.
+- Apple Watch companion source records workout start and completed sets locally, queues transfers with WatchConnectivity, and retries after reconnect. The iPhone bridge stores received sessions in a pending-review queue. The watchOS target and signing still need to be added to Xcode.
 - HealthKit access is opt-in and separately permissioned. Never infer permission from a widget or watch installation.
 
 ### Android
 
 - Jetpack Glance home-screen widget reads a minimized snapshot from app-private storage. The Android build workflow generates the Capacitor project, registers the bridge plugin, adds the widget receiver and compiles a debug APK.
-- Wear OS companion uses the Data Layer for phone/watch snapshot exchange and Health Services for supported exercise/heart-rate collection.
+- Wear OS companion is now a separate Gradle module with offline session start/set/finish capture and Wearable Data Layer transfer. The phone listener stores received sessions in a pending-review queue. Health Services heart-rate collection remains a separate permissioned follow-up.
 - Health Connect access is opt-in, scoped to requested record types and accompanied by clear provenance.
 
 ## Secure optional cloud sync (transport foundation implemented; sync remains disabled)
@@ -54,9 +54,10 @@ The web and native bundles now include a separate sync queue/transport interface
 - [x] Add the Android Capacitor plugin and Glance widget to the generated Android project.
 - [ ] Add WidgetKit and Live Activity targets to the generated Xcode project; add Watch app target and signing.
 - [x] Add Android Glance widget receiver to the Android app manifest.
-- [ ] Package the Wear OS companion and add its offline workout session/reconnect flow.
+- [x] Add the Wear OS companion module and offline workout session/reconnect flow to the Android build.
+- [ ] Add and sign the watchOS companion target.
 - [ ] Validate iOS simulator/device and Android emulator/device builds.
-- [ ] Test offline logging, app upgrade, local data preservation, snapshot refresh and phone/watch disconnect/reconnect.
+- [ ] Test offline logging, app upgrade, local data preservation, snapshot refresh and phone/watch disconnect/reconnect on physical devices.
 - [ ] Obtain explicit HealthKit/Health Connect permissions and complete privacy disclosures before release.
 - [x] Implement an isolated, disabled-by-default client sync queue and conflict-aware transport contract.
 - [ ] Provision and security-test the authenticated sync backend before exposing account sync to users.
