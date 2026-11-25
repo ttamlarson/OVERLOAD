@@ -7,8 +7,8 @@ const source = fs.readFileSync(path.join(__dirname, '..', 'device-bridge.js'), '
 
 test('device bridge preserves the canonical legacy storage key and is read-only', () => {
   assert.match(source, /apexProtocolData_v1/);
-  assert.match(source, /Storage\\.prototype\\.setItem/);
-  assert.doesNotMatch(source, /removeItem\\s*\\(|clear\\s*\\(/);
+  assert.match(source, /Storage\.prototype\.setItem/);
+  assert.doesNotMatch(source, /removeItem\s*\(|clear\s*\(/);
   assert.match(source, /overload:device-snapshot/);
 });
 
