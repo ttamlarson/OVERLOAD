@@ -1245,7 +1245,25 @@ function populateFoodLib(){
 let templateDraft=null;
 let creatingProgramme=false;
 function ensureProgrammeTemplates(){
- if(!Array.isArray(state.programmeTemplates))state.programmeTemplates=window.OverloadProgrammeTemplates.createDefaults(plans);
+ if(!Array.isArray(state.programmeTemplates)){
+  state.programmeTemplates=window.OverloadProgrammeTemplates.createDefaults(plans);
+  return;
+ }
+ // Older versions stored user-created routines separately. Preserve and surface
+ // those routines as one-day programmes instead of leaving the new programme list empty.
+ if(state.programmeTemplates.length===0&&Array.isArray(state.routines)&&state.routines.length){
+  state.programmeTemplates=state.routines.filter(r=>r&&Array.isArray(r.exercises)&&r.exercises.length).map(r=>({
+   id:'legacy-'+String(r.id||id()),
+   name:String(r.name||'Saved routine'),
+   description:'Imported from your saved routines',
+   days:[{id:'legacy-day-'+String(r.id||id()),name:String(r.name||'Workout'),exercises:r.exercises.map(ex=>({
+    name:String(ex.name||'Exercise'),
+    sets:Number(ex.sets)|| (Array.isArray(ex.sets)?ex.sets.length:3) || 3,
+    target:String(ex.target||'8–12')
+   }))}]
+  }));
+  if(state.programmeTemplates.length)persist();
+ }
 }
 function renderProgrammeTemplates(){
  ensureProgrammeTemplates();
