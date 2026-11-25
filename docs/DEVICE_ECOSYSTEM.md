@@ -7,7 +7,7 @@
 - The canonical browser record key remains `apexProtocolData_v1`. The bridge is a read-only projection and does not migrate, rename, clear or rewrite user records.
 - Widgets receive a deliberately small snapshot, not raw food logs, notes, measurements, recovery answers or the full workout history.
 - The app remains fully usable offline. No cloud account is required to record training.
-- Cloud sync is not enabled until an authenticated backend, per-user authorization, conflict handling, deletion and restore tests exist.
+- Cloud sync is not enabled until an authenticated backend, per-user authorization, conflict handling, deletion and restore tests exist. A separate disabled-by-default transport queue is now implemented under `overload_sync_state_v1`; it never reads or rewrites the legacy record store.
 - Existing JSON export/restore remains the recovery path during the staged rollout.
 
 ## Current implementation
@@ -34,7 +34,7 @@
 - Wear OS companion uses the Data Layer for phone/watch snapshot exchange and Health Services for supported exercise/heart-rate collection.
 - Health Connect access is opt-in, scoped to requested record types and accompanied by clear provenance.
 
-## Secure optional cloud sync (not yet enabled)
+## Secure optional cloud sync (transport foundation implemented; sync remains disabled)
 
 A production sync service must provide:
 1. Sign-in with short-lived access tokens; no API key or privileged database credential in the app.
@@ -45,7 +45,7 @@ A production sync service must provide:
 6. A durable queue with retry/backoff; local writes succeed even if the network is unavailable.
 7. Migration, two-device conflict, restore, revoke and deletion tests.
 
-The current repositories do not contain a verified authenticated sync backend or identity provider. Therefore the sync boundary is specified but remains disabled; do not point clients at an unconfigured Worker or invent credentials. Cloudflare D1/R2/Durable Objects can be evaluated for the backend after authentication and privacy design are approved.
+The web and native bundles now include a separate sync queue/transport interface. It requires an explicitly configured HTTPS endpoint and short-lived token provider, pushes revisioned operations, records conflicts and returns pulled changes for explicit app-level merge. It never applies remote changes automatically. The current repositories do not contain a verified authenticated sync backend or identity provider. Therefore network sync remains disabled; do not point clients at an unconfigured Worker or invent credentials. Cloudflare D1/R2/Durable Objects can be evaluated for the backend after authentication and privacy design are approved.
 
 ## Build and release gates
 
@@ -58,7 +58,8 @@ The current repositories do not contain a verified authenticated sync backend or
 - [ ] Validate iOS simulator/device and Android emulator/device builds.
 - [ ] Test offline logging, app upgrade, local data preservation, snapshot refresh and phone/watch disconnect/reconnect.
 - [ ] Obtain explicit HealthKit/Health Connect permissions and complete privacy disclosures before release.
-- [ ] Provision and security-test the sync backend before exposing account sync to users.
+- [x] Implement an isolated, disabled-by-default client sync queue and conflict-aware transport contract.
+- [ ] Provision and security-test the authenticated sync backend before exposing account sync to users.
 
 ## Rollout
 
