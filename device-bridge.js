@@ -97,9 +97,20 @@
   window.addEventListener('storage', event => {
     if (event.key === STORAGE_KEY || event.key === null) schedule();
   });
+  const nativePlugin = () => window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.OverloadDeviceBridge;
   window.OverloadDeviceBridge = Object.freeze({
     getSnapshot: buildSnapshot,
     refresh: publish,
+    getPendingWatchSessions() {
+      const plugin = nativePlugin();
+      if (!plugin || typeof plugin.getPendingWatchSessions !== 'function') return Promise.resolve([]);
+      return plugin.getPendingWatchSessions().then(result => Array.isArray(result.sessions) ? result.sessions : []).catch(() => []);
+    },
+    acknowledgeWatchSession(sessionId) {
+      const plugin = nativePlugin();
+      if (!plugin || typeof plugin.acknowledgeWatchSession !== 'function') return Promise.resolve({ acknowledged: false });
+      return plugin.acknowledgeWatchSession({ sessionId });
+    },
     subscribe(callback) {
       if (typeof callback !== 'function') return () => {};
       const handler = event => callback(event.detail);
