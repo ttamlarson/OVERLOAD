@@ -1,8 +1,8 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.17",
+  "version": "5.15.18",
   "releaseDate": "2026-11-26",
-  "notes": "Adds the first local-first device snapshot bridge for native widgets and wearable integrations.",
+  "notes": "Adds local-first device snapshot support for OVERLOAD native widgets and wearable integrations.",
   "releaseNotes": [
     "Merged AI coaching review into the daily coaching brief",
     "Kept AI programme generation inside the unified Coach experience"
