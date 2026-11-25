@@ -1252,7 +1252,7 @@ function renderProgrammeTemplates(){
  const el=$('programmeTemplates');if(!el)return;
  el.innerHTML=state.programmeTemplates.length?state.programmeTemplates.map(template=>`
   <div class="card">
-   <div class="between"><h3>${esc(template.name)}</h3><button class="btn secondary" data-template-edit="${esc(template.id)}">Edit</button></div>
+   <div class="between" style="gap:8px;align-items:center"><h3>${esc(template.name)}</h3><div class="row" style="gap:6px;flex-wrap:nowrap"><button class="btn secondary" data-template-edit="${esc(template.id)}">Edit</button><button class="btn danger" data-template-delete="${esc(template.id)}" aria-label="Delete ${esc(template.name)}">Delete</button></div></div>
    <div class="small">${esc(template.description||'Custom training programme')}</div>
    <div style="margin-top:12px">${template.days.map((day,index)=>`<div class="between" style="gap:8px;padding:8px 0;border-top:1px solid var(--line)"><div><strong>${index+1}. ${esc(day.name)}</strong><div class="small">${day.exercises.length} exercises</div></div><button class="btn" data-template-start="${esc(template.id)}" data-template-day="${esc(day.id)}">Start</button></div>`).join('')}</div>
   </div>`).join(''):'<div class="empty">No programme templates available.</div>';
@@ -1434,6 +1434,13 @@ $('addProgramme').onclick=createProgramme;
 $('programmeTemplates').onclick=e=>{
  const b=e.target.closest('button');if(!b)return;
  if(b.dataset.templateEdit){editProgrammeTemplate(b.dataset.templateEdit);return}
+ if(b.dataset.templateDelete){
+  const template=state.programmeTemplates.find(item=>item.id===b.dataset.templateDelete);if(!template)return;
+  if(!confirm(`Delete the programme “${template.name}”? This will not delete completed workout history.`))return;
+  state.programmeTemplates=state.programmeTemplates.filter(item=>item.id!==b.dataset.templateDelete);
+  if(templateDraft?.id===b.dataset.templateDelete){templateDraft=null;creatingProgramme=false;renderProgrammeTemplateEditor()}
+  save();renderProgrammeTemplates();toast('Programme deleted');return;
+ }
  if(b.dataset.templateStart)startProgrammeTemplateDay(b.dataset.templateStart,b.dataset.templateDay);
 };
 $('programmeTemplateEditor').oninput=e=>{
