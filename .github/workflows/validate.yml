@@ -17,6 +17,7 @@ jobs:
           node --check backup-validation.js
           node --check ai-coach-client.js
           node --check device-bridge.js
+          node --check sync-engine.js
           node --check sw.js
           node --check update.js
           node --check workers/ai-coach/src/index.mjs
