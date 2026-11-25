@@ -15,7 +15,7 @@
 - `device-bridge.js` observes writes to the existing localStorage key and publishes a versioned, minimized `overload:device-snapshot` event.
 - The bridge also calls the optional Capacitor plugin `OverloadDeviceBridge.publishSnapshot` when that native plugin is installed. Without it, the PWA works as before.
 - Snapshot schema v1 includes today's workout summary, weekly workout count, today's calories/protein and targets, and a placeholder for verified strength records. It never exposes free-text notes or food names.
-- Native source scaffolds live in the OVERLOAD-IOS repository. They are intentionally separate from the PWA's canonical records.
+- Native integration sources live in the `OVERLOAD-IOS` repository. The iOS Capacitor bridge is now registered by the generated native app; the Android Capacitor bridge and Glance widget are configured by a repeatable build script. Both remain separate from the PWA's canonical records.
 
 ## Platform delivery
 
@@ -23,14 +23,14 @@
 
 - WidgetKit / SwiftUI extension: small, medium and lock-screen widget families; timeline refresh is best-effort and OS scheduled.
 - App Group `group.com.overload.performance` is the shared snapshot boundary between the iOS app and widget extension.
-- Capacitor plugin writes the minimized snapshot to the App Group.
+- Capacitor plugin writes the minimized snapshot to the App Group. The iOS app target is configured with the `group.com.overload.performance` entitlement; this App Group must still be enabled in the Apple Developer account and shared with the WidgetKit extension before physical-device distribution.
 - Live Activities use ActivityKit for an active workout/rest timer. Start/update/end must be driven by explicit workout lifecycle events; no fake background timer guarantees.
 - Apple Watch companion uses WatchConnectivity and an independent watch-side workout session. Workout recording must continue without the phone and reconcile on reconnect.
 - HealthKit access is opt-in and separately permissioned. Never infer permission from a widget or watch installation.
 
 ### Android
 
-- Jetpack Glance home-screen widget reads a minimized snapshot from app-private storage.
+- Jetpack Glance home-screen widget reads a minimized snapshot from app-private storage. The Android build workflow generates the Capacitor project, registers the bridge plugin, adds the widget receiver and compiles a debug APK.
 - Wear OS companion uses the Data Layer for phone/watch snapshot exchange and Health Services for supported exercise/heart-rate collection.
 - Health Connect access is opt-in, scoped to requested record types and accompanied by clear provenance.
 
@@ -50,9 +50,11 @@ The current repositories do not contain a verified authenticated sync backend or
 ## Build and release gates
 
 - [ ] Register App Group and WidgetKit extension in Apple Developer account.
-- [ ] Add the Capacitor plugin to the iOS native project and register it in the app.
+- [x] Add the Capacitor plugin to the iOS native project and register it in the app.
+- [x] Add the Android Capacitor plugin and Glance widget to the generated Android project.
 - [ ] Add WidgetKit and Live Activity targets to the generated Xcode project; add Watch app target and signing.
-- [ ] Add Android Glance widget receiver to the Android app manifest and package the Wear OS companion.
+- [x] Add Android Glance widget receiver to the Android app manifest.
+- [ ] Package the Wear OS companion and add its offline workout session/reconnect flow.
 - [ ] Validate iOS simulator/device and Android emulator/device builds.
 - [ ] Test offline logging, app upgrade, local data preservation, snapshot refresh and phone/watch disconnect/reconnect.
 - [ ] Obtain explicit HealthKit/Health Connect permissions and complete privacy disclosures before release.
@@ -60,8 +62,8 @@ The current repositories do not contain a verified authenticated sync backend or
 
 ## Rollout
 
-1. Ship the harmless web snapshot bridge and native source foundations.
-2. Wire native targets and verify widgets on real devices.
-3. Add watch-side independent workout capture and reconnection.
+1. Validate the generated iOS and Android builds in CI.
+2. Add and sign the WidgetKit extension and verify widgets on real devices.
+3. Build Apple Watch and Wear OS companion apps with independent workout capture and reconnect-safe transfer.
 4. Implement authenticated sync in a separate, tested backend release.
 5. Enable cloud sync as an opt-in setting only after the full conflict/deletion test suite passes.
