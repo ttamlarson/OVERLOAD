@@ -15,7 +15,8 @@ jobs:
         run: |
           node --check beta-feedback.js
           node --check backup-validation.js
-          node --check ai-coach-client.js\n          node --check device-bridge.js
+          node --check ai-coach-client.js
+          node --check device-bridge.js
           node --check sw.js
           node --check update.js
           node --check workers/ai-coach/src/index.mjs
