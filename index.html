@@ -693,15 +693,28 @@ input,select,textarea{max-width:100%;font-size:16px}
   <div class="field"><label>Fat target (% of calories)</label><input id="fatpercent" type="number" min="10" max="50" step="1" value="27"></div>
  </div><button class="btn" id="savesettings" style="margin-top:12px">Save targets</button></div>
  <div class="card appearance-card"><div class="between appearance-heading"><div><h3>Appearance</h3><p>Eight tuned colour systems. Choose a look; your preference stays on this device.</p></div><span class="pill">8 THEMES</span></div><label class="theme-picker-label" for="themeSelect">Performance theme</label><select id="themeSelect" class="theme-native-select" aria-label="Performance theme"><option value="apex">BLACKOUT — Obsidian</option><option value="midnight">Midnight Blue</option><option value="forest">Forest Green</option><option value="ember">Ember</option><option value="light">Light</option><option value="crimson">Crimson Edge</option><option value="arctic">Arctic Steel</option><option value="tactical">Tactical Olive</option></select><div class="theme-grid" role="group" aria-label="Choose a performance theme"><button type="button" class="theme-option" data-theme-choice="apex" aria-pressed="true"><span class="theme-preview preview-apex"><i></i><i></i><i></i></span><strong>BLACKOUT</strong><small>Obsidian · Signal red</small></button><button type="button" class="theme-option" data-theme-choice="midnight" aria-pressed="false"><span class="theme-preview preview-midnight"><i></i><i></i><i></i></span><strong>MIDNIGHT</strong><small>Deep navy · Electric blue</small></button><button type="button" class="theme-option" data-theme-choice="forest" aria-pressed="false"><span class="theme-preview preview-forest"><i></i><i></i><i></i></span><strong>FOREST</strong><small>Evergreen · Mineral green</small></button><button type="button" class="theme-option" data-theme-choice="ember" aria-pressed="false"><span class="theme-preview preview-ember"><i></i><i></i><i></i></span><strong>EMBER</strong><small>Charcoal · Burnt copper</small></button><button type="button" class="theme-option" data-theme-choice="light" aria-pressed="false"><span class="theme-preview preview-light"><i></i><i></i><i></i></span><strong>LIGHT</strong><small>Porcelain · Signal red</small></button><button type="button" class="theme-option" data-theme-choice="crimson" aria-pressed="false"><span class="theme-preview preview-crimson"><i></i><i></i><i></i></span><strong>CRIMSON EDGE</strong><small>Blackout · Crimson</small></button><button type="button" class="theme-option" data-theme-choice="arctic" aria-pressed="false"><span class="theme-preview preview-arctic"><i></i><i></i><i></i></span><strong>ARCTIC STEEL</strong><small>Graphite · Ice blue</small></button><button type="button" class="theme-option" data-theme-choice="tactical" aria-pressed="false"><span class="theme-preview preview-tactical"><i></i><i></i><i></i></span><strong>TACTICAL</strong><small>Field green · Olive</small></button></div><div class="theme-current"><span class="theme-current-dot"></span><span id="themeDescription" aria-live="polite">BLACKOUT · obsidian black, gunmetal and steel. OVERLOAD signature colourway.</span></div></div>
+ <div class="card"><h3>Encrypted cloud sync</h3>
+ <p>OVERLOAD encrypts your complete training and nutrition backup on this device before sending it to Cloudflare. Your recovery key is never stored in the cloud. Use the same key to pair your other devices.</p>
+ <div class="field"><label for="syncRecoveryKeyInput">Private recovery key</label><input id="syncRecoveryKeyInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Generate a key or enter one from another device"></div>
+ <div class="row" style="margin-top:10px">
+  <button class="btn" id="syncEnable">Generate key & enable sync</button>
+  <button class="btn secondary" id="syncConnect">Connect this device</button>
+  <button class="btn secondary" id="syncNow">Sync now</button>
+  <button class="btn secondary" id="syncCopyKey">Copy recovery key</button>
+  <button class="btn secondary" id="syncRestore">Restore cloud backup</button>
+ </div>
+ <div class="notice" id="syncStatus" role="status" aria-live="polite">Encrypted sync is off. Generate a recovery key to enable it. Keep that key somewhere private; it is required to recover your records on another device.</div>
+ <p class="small">The server stores encrypted backup blobs only. Each update is revision-checked to prevent silent overwrites, and up to 20 previous cloud versions are retained. Losing your recovery key means the cloud backup cannot be decrypted.</p>
+</div>
  <div class="card"><h3>Backup & restore</h3>
- <p>Records are stored locally in this browser. Export regularly and keep a copy in iCloud, Google Drive, or email so you can restore on another device.</p>
+ <p>Export a portable JSON backup and keep a separate copy in iCloud, Google Drive, or another secure location.</p>
  <div class="row">
   <button class="btn" id="export">Export JSON backup</button>
   <button class="btn secondary" id="copyBackup">Copy backup to clipboard</button>
   <label class="btn secondary" for="import">Import backup</label>
   <input class="hidden" id="import" type="file" accept=".json,application/json">
  </div>
- <p class="small">Restoring replaces records on this device. OVERLOAD downloads a safety copy of your current records first. Only restore a backup you trust. There is no automatic cloud sync.</p>
+ <p class="small">Restoring replaces records on this device. OVERLOAD downloads a safety copy of your current records first.</p>
 </div>
  <div class="card"><h3>Local storage</h3><p>Your records stay in this browser on this device. They are not protected by an online account or automatic cloud backup. Anyone with access to your unlocked device and browser profile may be able to access them. Clearing browser data, private browsing cleanup, device loss or browser storage failure can erase them.</p><button class="btn danger" id="erase">Delete all app data</button></div>
 </section>
@@ -725,6 +738,7 @@ input,select,textarea{max-width:100%;font-size:16px}
 <script src="./personal-records.js?v=5.14.8"></script>
 <script src="./programme-templates.js?v=5.14.8"></script>
 <script src="./backup-validation.js?v=5.14.8"></script>
+<script src="./sync-client.js?v=1"></script>
 <script src="./ai-coach-client.js?v=5.15.0"></script>
 <script>
 (() => {
@@ -1058,14 +1072,23 @@ function applyTheme(theme){const allowed=['apex','midnight','forest','ember','li
 function storageWriteFailed(error){
  if(!storageWriteWarningShown){storageWriteWarningShown=true;toast('Could not save data. Export a backup and free browser storage before continuing.');console.error('OVERLOAD storage write failed',error)}
 }
+function markSyncDirty(){if(state.settings?.syncEnabled&&state.settings?.syncRecoveryKey)state.settings.syncDirty=true}
+function afterLocalPersist(){
+ if(window.OverloadSync){
+  const now=Date.now();
+  if(now-lastLocalSnapshotAt>30000){lastLocalSnapshotAt=now;window.OverloadSync.archiveLocal(backupPayload(state))}
+  if(state.settings?.syncEnabled&&state.settings?.syncRecoveryKey)scheduleEncryptedSync();
+ }
+}
+let lastLocalSnapshotAt=0;
 function save(){
  if(storageLoadError){toast('Saved data could not be read. OVERLOAD has protected the original browser data from being overwritten.');return}
- try{localStorage.setItem(KEY,JSON.stringify(state));render()}catch(error){storageWriteFailed(error)}
+ try{markSyncDirty();localStorage.setItem(KEY,JSON.stringify(state));afterLocalPersist();render()}catch(error){storageWriteFailed(error)}
 }
 // Persist without re-rendering (keeps input focus while typing)
 function persist(){
  if(storageLoadError){toast('Saved data could not be read. Existing browser data is protected.');return false}
- try{localStorage.setItem(KEY,JSON.stringify(state));return true}catch(error){storageWriteFailed(error);return false}
+ try{markSyncDirty();localStorage.setItem(KEY,JSON.stringify(state));afterLocalPersist();return true}catch(error){storageWriteFailed(error);return false}
 }
 function toast(s){$('toast').textContent=s;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),2200)}
 function renderPersonalRecords(){
@@ -1684,7 +1707,9 @@ $('recoverylist').onclick=e=>{const b=e.target.closest('[data-recovery-del]');if
 $('savesettings').onclick=()=>{state.settings.calories=Math.max(1,n($('ctarget').value)||2800);state.settings.protein=Math.max(1,n($('ptarget').value)||130);state.settings.fatPercent=Math.min(50,Math.max(10,n($('fatpercent').value)||27));save();toast('Macro targets saved')};
 $('themeSelect').onchange=()=>{state.settings.theme=$('themeSelect').value;applyTheme(state.settings.theme);persist();toast('Theme updated')};document.querySelectorAll('[data-theme-choice]').forEach(button=>{button.addEventListener('click',()=>{state.settings.theme=button.dataset.themeChoice;applyTheme(state.settings.theme);persist();toast('Theme updated')})});
 function backupPayload(source=state){
- return {app:'OVERLOAD',schemaVersion:1,exportedAt:new Date().toISOString(),...source};
+ const safe={...source,settings:{...(source.settings||{})}};
+ for(const key of ['syncRecoveryKey','syncEnabled','syncRevision','syncDirty'])delete safe.settings[key];
+ return {app:'OVERLOAD',schemaVersion:1,exportedAt:new Date().toISOString(),...safe};
 }
 function downloadBackup(filename,source=state){
  const blob=new Blob([JSON.stringify(backupPayload(source),null,2)],{type:'application/json'});
@@ -1778,6 +1803,112 @@ $('aiProgramGenerate').onclick=async()=>{
  }catch(error){status.textContent=error.message||'AI programme generation is unavailable.'}
  finally{button.disabled=!state.settings.featureConsent}
 };
+
+let encryptedSyncTimer=null,encryptedSyncBusy=false;
+function syncStatus(message){const el=$('syncStatus');if(el)el.textContent=message}
+function saveSyncMetadata(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(error){console.warn('OVERLOAD sync metadata could not be saved',error)}}
+function hasMeaningfulLocalData(){return ['workouts','foods','measurements','recoveries','routines','cardio'].some(key=>Array.isArray(state[key])&&state[key].length>0)}
+function scheduleEncryptedSync(){
+ if(encryptedSyncTimer)clearTimeout(encryptedSyncTimer);
+ encryptedSyncTimer=setTimeout(()=>syncNow('auto').catch(error=>syncStatus(error.message||'Automatic sync failed.')),1400);
+}
+async function restoreEncryptedCloud(phrase,remote){
+ const payload=await window.OverloadSync.decrypt(phrase,remote);
+ if(storageLoadError)throw new Error('Local data could not be read safely. Restore is disabled to protect the original browser data.');
+ downloadBackup('overload-pre-cloud-restore-'+today()+'.json',state);
+ const d=defaults();
+ const next={...d,...payload,settings:{...d.settings,...payload.settings,syncEnabled:true,syncRecoveryKey:phrase,syncRevision:remote.revision,syncDirty:false},current:{...d.current,...payload.current},workouts:payload.workouts,foods:payload.foods,measurements:payload.measurements,recoveries:payload.recoveries||[],routines:payload.routines||[],cardio:payload.cardio||[]};
+ delete next.programmes;
+ try{localStorage.setItem(KEY,JSON.stringify(next))}catch(error){throw new Error('Cloud backup was decrypted, but local storage could not save it. Existing records have not been replaced.')}
+ state=next;init();if(state.current.exercises.length)renderExercises();else setPlan(state.current.type||'Upper A');render();
+ syncStatus('Cloud backup restored and verified. Local records are now up to date.');
+}
+async function syncNow(mode='manual'){
+ if(encryptedSyncBusy)return;
+ const phrase=state.settings?.syncRecoveryKey;
+ if(!state.settings?.syncEnabled||!phrase){syncStatus('Encrypted sync is not enabled on this device.');return}
+ encryptedSyncBusy=true;
+ try{
+  syncStatus('Checking encrypted cloud backup…');
+  const remote=await window.OverloadSync.get(phrase);
+  const localRevision=Number(state.settings.syncRevision)||0;
+  const dirty=!!state.settings.syncDirty;
+  if(!remote){
+   if(localRevision>0)throw new Error('The cloud backup is missing or unavailable. Local records have been left untouched.');
+   const result=await window.OverloadSync.upload(phrase,backupPayload(state),0);
+   state.settings.syncRevision=result.revision;state.settings.syncDirty=false;saveSyncMetadata();
+   syncStatus('Encrypted cloud backup created successfully.');
+   return;
+  }
+  if(mode==='restore'){await restoreEncryptedCloud(phrase,remote);return}
+  if(remote.revision>localRevision){
+   if(!dirty&&!hasMeaningfulLocalData()){await restoreEncryptedCloud(phrase,remote);return}
+   if(!dirty&&localRevision>0){await restoreEncryptedCloud(phrase,remote);return}
+   syncStatus('A newer cloud backup exists. Your local changes are protected. Choose Restore cloud backup after exporting local records if you need both copies.');
+   return;
+  }
+  if(remote.revision<localRevision)throw new Error('This device is ahead of the cloud revision. No data was overwritten; export a local backup and reconnect.');
+  if(dirty){
+   const result=await window.OverloadSync.upload(phrase,backupPayload(state),localRevision);
+   state.settings.syncRevision=result.revision;state.settings.syncDirty=false;saveSyncMetadata();
+   syncStatus('Encrypted sync complete. Cloud revision '+result.revision+'.');
+  }else syncStatus('Everything is up to date. Cloud revision '+remote.revision+'.');
+ }catch(error){syncStatus(error.message||'Encrypted sync failed. Your local records remain on this device.');throw error}
+ finally{encryptedSyncBusy=false}
+}
+$('syncEnable').onclick=async()=>{
+ try{
+  if(storageLoadError)throw new Error('Local records could not be read safely. Sync cannot be enabled until storage is healthy.');
+  if(state.settings.syncEnabled&&state.settings.syncRecoveryKey){syncStatus('Encrypted sync is already enabled.');return}
+  if(!confirm('Generate a private recovery key and enable encrypted cloud sync? Save the key somewhere safe. It is required to restore your records on another device.'))return;
+  const phrase=window.OverloadSync.generateRecoveryKey();
+  state.settings.syncRecoveryKey=phrase;state.settings.syncEnabled=true;state.settings.syncRevision=0;state.settings.syncDirty=true;
+  $('syncRecoveryKeyInput').value=phrase;localStorage.setItem(KEY,JSON.stringify(state));
+  syncStatus('Recovery key generated. Copy and store it safely. Creating your first encrypted cloud backup…');
+  await syncNow('manual');
+ }catch(error){syncStatus(error.message||'Could not enable encrypted sync.')}
+};
+$('syncConnect').onclick=async()=>{
+ try{
+  if(storageLoadError)throw new Error('Local records could not be read safely. Connect is disabled to protect them.');
+  const phrase=$('syncRecoveryKeyInput').value.trim();
+  if(phrase.length<32)throw new Error('Enter the recovery key from your other device (at least 32 characters).');
+  const remote=await window.OverloadSync.get(phrase);
+  state.settings.syncRecoveryKey=phrase;state.settings.syncEnabled=true;
+  if(remote){
+   saveSyncMetadata();
+   if(confirm('A cloud backup exists at revision '+remote.revision+'. Restore it on this device? A safety copy of current local records will be downloaded first.'))await restoreEncryptedCloud(phrase,remote);
+   else syncStatus('Recovery key connected. Existing cloud backup was not changed. Export local data before choosing any restore.');
+  }else{
+   state.settings.syncRevision=0;state.settings.syncDirty=true;saveSyncMetadata();
+   await syncNow('manual');
+  }
+ }catch(error){syncStatus(error.message||'Could not connect this device.')}
+};
+$('syncNow').onclick=()=>syncNow('manual').catch(()=>{});
+$('syncRestore').onclick=async()=>{
+ try{
+  const phrase=state.settings?.syncRecoveryKey||$('syncRecoveryKeyInput').value.trim();
+  if(phrase.length<32)throw new Error('Enter and connect your recovery key first.');
+  const remote=await window.OverloadSync.get(phrase);
+  if(!remote)throw new Error('No cloud backup exists for this recovery key.');
+  if(!confirm('Restore cloud revision '+remote.revision+' over the records on this device? A separate safety backup will be downloaded first.'))return;
+  state.settings.syncRecoveryKey=phrase;state.settings.syncEnabled=true;
+  await restoreEncryptedCloud(phrase,remote);
+ }catch(error){syncStatus(error.message||'Could not restore cloud backup.')}
+};
+$('syncCopyKey').onclick=async()=>{
+ const phrase=state.settings?.syncRecoveryKey||$('syncRecoveryKeyInput').value.trim();
+ if(phrase.length<32){syncStatus('Generate or connect a recovery key before copying it.');return}
+ try{await navigator.clipboard.writeText(phrase);syncStatus('Recovery key copied. Store it somewhere private and separate from your phone.')}
+ catch(error){$('syncRecoveryKeyInput').value=phrase;$('syncRecoveryKeyInput').focus();$('syncRecoveryKeyInput').select();syncStatus('Clipboard access is unavailable. Select and copy the recovery key from the field.')}
+};
+function syncOnStartup(){
+ if(!state.settings?.syncEnabled||!state.settings?.syncRecoveryKey){syncStatus('Encrypted sync is off. Generate a recovery key to enable it.');return}
+ $('syncRecoveryKeyInput').value=state.settings.syncRecoveryKey;
+ syncNow('auto').catch(()=>{});
+}
+
 $('export').onclick=()=>downloadBackup('overload-backup-'+today()+'.json');
 $('import').onchange=async e=>{
  const f=e.target.files[0];if(!f)return;
@@ -1939,6 +2070,7 @@ init();
 if(state.current.exercises.length)renderExercises();else setPlan(state.current.type||'Upper A');
 try{render()}catch(error){console.error('OVERLOAD general render failed',error)}
 try{renderProgrammeTemplates()}catch(error){console.error('OVERLOAD programme library render failed',error)}
+setTimeout(syncOnStartup,1200);
 })();
 </script>
 <script src="./beta-feedback.js?v=5.14.8"></script>
