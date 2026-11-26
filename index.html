@@ -1552,13 +1552,18 @@ $('programmeTemplates').onclick=e=>{
   if(!state.deletedStandardWorkouts.includes(name))state.deletedStandardWorkouts.push(name);
   save();renderProgrammeTemplates();init();toast('Standard workout deleted');return;
  }
- if(b.dataset.templateEdit){editProgrammeTemplate(b.dataset.templateEdit);return}
+ if(b.dataset.templateEdit){editProgrammeTemplate(String(b.dataset.templateEdit));return}
  if(b.dataset.templateDelete){
-  const template=state.programmeTemplates.find(item=>item.id===b.dataset.templateDelete);if(!template)return;
+  const deleteId=String(b.dataset.templateDelete);
+  const template=state.programmeTemplates.find(item=>String(item.id)===deleteId);if(!template)return;
   if(!confirm(`Delete the programme “${template.name}”? This will not delete completed workout history.`))return;
-  state.programmeTemplates=state.programmeTemplates.filter(item=>item.id!==b.dataset.templateDelete);
-  if(templateDraft?.id===b.dataset.templateDelete){templateDraft=null;creatingProgramme=false;renderProgrammeTemplateEditor()}
-  save();renderProgrammeTemplates();toast('Programme deleted');return;
+  state.programmeTemplates=state.programmeTemplates.filter(item=>String(item.id)!==deleteId);
+  if(templateDraft&&String(templateDraft.id)===deleteId){templateDraft=null;creatingProgramme=false;renderProgrammeTemplateEditor()}
+  save();
+  renderProgrammeTemplates();
+  init();
+  toast('Programme deleted');
+  return;
  }
  if(b.dataset.templateStart)startProgrammeTemplateDay(b.dataset.templateStart,b.dataset.templateDay);
 };

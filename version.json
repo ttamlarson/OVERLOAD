@@ -1,11 +1,11 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.24",
+  "version": "5.15.25",
   "releaseDate": "2026-11-26",
-  "notes": "Include every saved programme day in the workout selector.",
+  "notes": "Fix programme deletion for IDs stored as either strings or numbers.",
   "releaseNotes": [
-    "Workout dropdown now includes days from all saved programmes, including built-in programme templates",
-    "Standard workout options remain excluded",
-    "No workout or programme data is modified"
+    "Programme edit and delete handlers now compare IDs consistently",
+    "Deleting a programme refreshes the library and workout dropdown",
+    "Completed workout history is retained"
   ]
 }
