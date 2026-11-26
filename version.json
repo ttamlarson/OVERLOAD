@@ -1,11 +1,11 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.21",
+  "version": "5.15.22",
   "releaseDate": "2026-11-26",
   "notes": "Adds body-weight capture from Recovery check-ins and unified Progress history.",
   "releaseNotes": [
     "Optional body-weight entry in Recovery check-ins",
     "Recovery weigh-ins automatically appear in Progress history and trend chart",
-    "Preserves existing measurements and migrates older recovery weight entries"
+    "Preserves existing measurements and migrates older recovery weight entries into durable local storage"
   ]
 }
