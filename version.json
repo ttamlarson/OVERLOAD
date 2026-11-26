@@ -1,11 +1,11 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.25",
+  "version": "5.15.26",
   "releaseDate": "2026-11-26",
-  "notes": "Fix programme deletion for IDs stored as either strings or numbers.",
+  "notes": "Display programme day names without programme names in the workout selector.",
   "releaseNotes": [
-    "Programme edit and delete handlers now compare IDs consistently",
-    "Deleting a programme refreshes the library and workout dropdown",
-    "Completed workout history is retained"
+    "Workout dropdown labels now show day names only",
+    "Programme grouping and programme day selection values are preserved",
+    "Standard workouts remain excluded"
   ]
 }
