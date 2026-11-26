@@ -1,11 +1,11 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.26",
+  "version": "5.15.27",
   "releaseDate": "2026-11-26",
-  "notes": "Display programme day names without programme names in the workout selector.",
+  "notes": "Fix programme deletion persistence and prevent deleted legacy routines reappearing.",
   "releaseNotes": [
-    "Workout dropdown labels now show day names only",
-    "Programme grouping and programme day selection values are preserved",
-    "Standard workouts remain excluded"
+    "Deleted routine-derived programmes are recorded so migration cannot recreate them",
+    "Programme deletion checks persistence success before refreshing the library",
+    "Completed workout history and source routine data are otherwise retained"
   ]
 }
