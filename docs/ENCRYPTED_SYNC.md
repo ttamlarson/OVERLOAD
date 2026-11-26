@@ -9,7 +9,7 @@
 - The Worker stores only ciphertext chunks in the `overload-encrypted-sync` D1 database. It cannot decrypt the backup without the recovery phrase.
 - Each cloud write uses an expected revision. If another device has already uploaded a newer revision, the write is rejected rather than silently overwriting it.
 - The previous 20 cloud revisions are retained in D1 history tables.
-- Up to 20 recent local snapshots are kept in IndexedDB as an additional browser-local recovery layer.
+- Up to 20 recent local snapshots are kept in IndexedDB as an additional browser-local recovery layer; Settings includes a **Recover local snapshot** action.
 - Portable JSON export/import remains available. Export files deliberately omit the private sync recovery key.
 
 ## Pairing a device
