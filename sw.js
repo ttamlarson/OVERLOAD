@@ -1,5 +1,5 @@
-/* OVERLOAD service worker — v5.15.25. */
-const CACHE_NAME = "overload-shell-5.15.25";
+/* OVERLOAD service worker — v5.15.26. */
+const CACHE_NAME = "overload-shell-5.15.26";
 const CACHE_PREFIX = "overload-shell-";
 const CORE = ["./","./index.html","./coach-engine.js","./muscle-map.js","./personal-records.js","./programme-templates.js","./backup-validation.js","./sync-client.js","./ai-coach-client.js","./update.js","./beta-feedback.js","./version.json","./manifest.webmanifest","./icon.svg","./overload-mark.svg","./apple-touch-icon.png","./icon-192.png","./icon-512.png"];
 self.addEventListener("install", event => {
