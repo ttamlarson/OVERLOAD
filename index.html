@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="overload-ai-endpoint" content="https://overload.ttamlarson.workers.dev/v1/coach">
-<link rel="manifest" href="./manifest.webmanifest?v=5.15.25">
-<link rel="icon" href="./overload-mark.svg?v=5.15.25" type="image/svg+xml">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.25">
+<link rel="manifest" href="./manifest.webmanifest?v=5.15.26">
+<link rel="icon" href="./overload-mark.svg?v=5.15.26" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.26">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OVERLOAD">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -740,13 +740,13 @@ input,select,textarea{max-width:100%;font-size:16px}
 <div id="toast" class="hidden" role="status"></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="./muscle-map.js?v=5.15.25"></script>
+<script src="./muscle-map.js?v=5.15.26"></script>
 <script src="./coach-engine.js"></script>
-<script src="./personal-records.js?v=5.15.25"></script>
-<script src="./programme-templates.js?v=5.15.25"></script>
-<script src="./backup-validation.js?v=5.15.25"></script>
-<script src="./sync-client.js?v=5.15.25"></script>
-<script src="./ai-coach-client.js?v=5.15.25"></script>
+<script src="./personal-records.js?v=5.15.26"></script>
+<script src="./programme-templates.js?v=5.15.26"></script>
+<script src="./backup-validation.js?v=5.15.26"></script>
+<script src="./sync-client.js?v=5.15.26"></script>
+<script src="./ai-coach-client.js?v=5.15.26"></script>
 <script>
 (() => {
 'use strict';
@@ -772,7 +772,9 @@ try{
  state={...defaults(),...stored};
  const d=defaults();
  state.settings={...d.settings,...state.settings};
- for(const k of ['workouts','foods','measurements','recoveries','routines','cardio'])if(!Array.isArray(state[k]))state[k]=[];
+ for(const k of ['foods','measurements','recoveries','routines','cardio'])if(!Array.isArray(state[k]))state[k]=[];
+ // Preserve workout history stored in either the current array format or a legacy object format.
+ if(!Array.isArray(state.workouts))state.workouts=state.workouts&&typeof state.workouts==='object'?Object.values(state.workouts):[];
  // Migrate body weights already attached to older recovery check-ins into the
  // shared measurement timeline without duplicating existing linked entries.
  state.recoveries.forEach(r=>{
@@ -1235,8 +1237,11 @@ function renderFood(){
 }
 function renderWorkoutHistory(){
  const target=$('whistory');if(!target)return;
+ // Read from the in-memory state first; never replace or clear saved workout records here.
  const workouts=Array.isArray(state.workouts)?state.workouts:[];
- target.innerHTML=workouts.length?[...workouts].reverse().map((w,index)=>{
+ const fold=$('workoutHistoryFold');
+ if(fold&&workouts.length)fold.open=true;
+ target.innerHTML=workouts.length?[...workouts].filter(w=>w&&typeof w==='object').reverse().map((w,index)=>{
   const workout=w&&typeof w==='object'?w:{};
   const exercises=Array.isArray(workout.exercises)?workout.exercises:[];
   const completed=exercises.reduce((total,exercise)=>total+(Array.isArray(exercise&&exercise.sets)?exercise.sets.filter(set=>set&&set.done).length:0),0);
@@ -1390,7 +1395,7 @@ function createProgramme(){
  $('programmeTemplateEditor').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function editProgrammeTemplate(templateId){
- const template=state.programmeTemplates.find(item=>item.id===templateId);if(!template)return;
+ const template=state.programmeTemplates.find(item=>String(item.id)===String(templateId));if(!template)return;
  creatingProgramme=false;
  templateDraft=window.OverloadProgrammeTemplates.clone(template);
  renderProgrammeTemplateEditor();
@@ -1622,9 +1627,9 @@ $('programmeTemplates').onclick=e=>{
  }
  if(b.dataset.templateEdit){editProgrammeTemplate(b.dataset.templateEdit);return}
  if(b.dataset.templateDelete){
-  const template=state.programmeTemplates.find(item=>item.id===b.dataset.templateDelete);if(!template)return;
+  const template=state.programmeTemplates.find(item=>String(item.id)===String(b.dataset.templateDelete));if(!template)return;
   if(!confirm(`Delete the programme “${template.name}”? This will not delete completed workout history.`))return;
-  state.programmeTemplates=state.programmeTemplates.filter(item=>item.id!==b.dataset.templateDelete);
+  state.programmeTemplates=state.programmeTemplates.filter(item=>String(item.id)!==String(b.dataset.templateDelete));
   if(templateDraft?.id===b.dataset.templateDelete){templateDraft=null;creatingProgramme=false;renderProgrammeTemplateEditor()}
   save();renderProgrammeTemplates();toast('Programme deleted');return;
  }
@@ -1657,7 +1662,7 @@ $('programmeTemplateEditor').onclick=e=>{
    if(state.programmeTemplates.some(item=>item.name.trim().toLowerCase()===name.toLowerCase())){toast('A programme with that name already exists');return}
    state.programmeTemplates.push(programme);
   }else{
-   const index=state.programmeTemplates.findIndex(item=>item.id===templateDraft.id);
+   const index=state.programmeTemplates.findIndex(item=>String(item.id)===String(templateDraft.id));
    if(index<0){toast('Programme could not be found');return}
    state.programmeTemplates[index]=programme;
   }
@@ -2207,7 +2212,7 @@ if(!storageLoadError)afterLocalPersist();
 setTimeout(syncOnStartup,1200);
 })();
 </script>
-<script src="./beta-feedback.js?v=5.15.25"></script>
+<script src="./beta-feedback.js?v=5.15.26"></script>
 <script src="./update.js"></script>
 <script>
 if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {
