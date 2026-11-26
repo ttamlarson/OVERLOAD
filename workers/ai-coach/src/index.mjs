@@ -314,7 +314,7 @@ async function handleSyncRequest(request, env) {
     env.SYNC_DB.prepare("INSERT OR IGNORE INTO overload_sync_history (sync_id, revision, ciphertext, iv, updated_at) SELECT sync_id, revision, '', iv, updated_at FROM overload_sync WHERE sync_id = ? AND revision = ?").bind(expectedId, existing.revision),
     env.SYNC_DB.prepare("INSERT OR IGNORE INTO overload_sync_history_chunks (sync_id, revision, chunk_index, chunk_data) SELECT sync_id, revision, chunk_index, chunk_data FROM overload_sync_chunks WHERE sync_id = ? AND revision = ?").bind(expectedId, existing.revision),
     env.SYNC_DB.prepare("UPDATE overload_sync SET revision = revision + 1, ciphertext = '', iv = ?, updated_at = ? WHERE sync_id = ? AND revision = ?").bind(input.iv, now, expectedId, input.revision),
-    env.SYNC_DB.prepare("DELETE FROM overload_sync_chunks WHERE sync_id = ? AND EXISTS (SELECT 1 FROM overload_sync WHERE sync_id = ? AND revision = ?)").bind(expectedId, expectedId, existing.revision + 1),
+    env.SYNC_DB.prepare("DELETE FROM overload_sync_chunks WHERE sync_id = ? AND revision = ?").bind(expectedId, existing.revision),
     ...chunkInserts(existing.revision + 1, input.chunks),
     env.SYNC_DB.prepare("DELETE FROM overload_sync_history WHERE sync_id = ? AND revision NOT IN (SELECT revision FROM overload_sync_history WHERE sync_id = ? ORDER BY revision DESC LIMIT 20)").bind(expectedId, expectedId),
     env.SYNC_DB.prepare("DELETE FROM overload_sync_history_chunks WHERE sync_id = ? AND revision NOT IN (SELECT revision FROM overload_sync_history WHERE sync_id = ?)").bind(expectedId, expectedId)
