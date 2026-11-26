@@ -1,10 +1,11 @@
 {
   "app": "OVERLOAD",
-  "version": "5.14.8",
-  "releaseDate": "2026-11-24",
-  "notes": "Adds consent-based AI programme generation with structured programme validation and save-to-library review flow.",
+  "version": "5.15.17",
+  "releaseDate": "2026-11-26",
+  "notes": "Adds encrypted cloud backup, cross-device sync and automatic local recovery snapshots.",
   "releaseNotes": [
-    "Merged AI coaching review into the daily coaching brief",
-    "Kept AI programme generation inside the unified Coach experience"
+    "Client-side AES-GCM encrypted cloud backup",
+    "Revision-safe cross-device sync and retained cloud versions",
+    "Automatic local IndexedDB recovery snapshots"
   ]
 }
