@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="overload-ai-endpoint" content="https://overload.ttamlarson.workers.dev/v1/coach">
-<link rel="manifest" href="./manifest.webmanifest?v=5.15.21">
-<link rel="icon" href="./overload-mark.svg?v=5.15.21" type="image/svg+xml">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.21">
+<link rel="manifest" href="./manifest.webmanifest?v=5.15.22">
+<link rel="icon" href="./overload-mark.svg?v=5.15.22" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.22">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OVERLOAD">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -735,13 +735,13 @@ input,select,textarea{max-width:100%;font-size:16px}
 <div id="toast" class="hidden" role="status"></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="./muscle-map.js?v=5.15.21"></script>
+<script src="./muscle-map.js?v=5.15.22"></script>
 <script src="./coach-engine.js"></script>
-<script src="./personal-records.js?v=5.15.21"></script>
-<script src="./programme-templates.js?v=5.15.21"></script>
-<script src="./backup-validation.js?v=5.15.21"></script>
-<script src="./sync-client.js?v=5.15.21"></script>
-<script src="./ai-coach-client.js?v=5.15.21"></script>
+<script src="./personal-records.js?v=5.15.22"></script>
+<script src="./programme-templates.js?v=5.15.22"></script>
+<script src="./backup-validation.js?v=5.15.22"></script>
+<script src="./sync-client.js?v=5.15.22"></script>
+<script src="./ai-coach-client.js?v=5.15.22"></script>
 <script>
 (() => {
 'use strict';
@@ -753,6 +753,7 @@ const defaults=()=>({settings:{calories:2800,protein:130,fatPercent:27},workouts
 let state;
 let storageLoadError=false;
 let storageWriteWarningShown=false;
+let migratedRecoveryWeights=false;
 let foodRenderSnapshot=[];
 let foodEditIndex=null;
 let foodCopySource=null;
@@ -773,6 +774,7 @@ try{
   const weight=raw==null||raw===''?'':Number(raw);
   if(weight!==''&&Number.isFinite(weight)&&weight>0&&!state.measurements.some(m=>m&&m.recoveryId===r.id)){
    state.measurements.push({id:id(),recoveryId:r.id,date:r.date||today(),weight,waist:'',source:'recovery'});
+   migratedRecoveryWeights=true;
   }
  });
 
@@ -2120,6 +2122,7 @@ $('resettimer').onclick = () => { setTimer(90); };
 // FIX: sort measurements by date before redrawing the chart on resize/rotate
 window.addEventListener('resize',()=>{if($('progress').classList.contains('active'))drawChart([...state.measurements].sort((a,b)=>a.date.localeCompare(b.date)))});
 init();
+if(migratedRecoveryWeights)persist();
 if(state.current.exercises.length)renderExercises();else setPlan(state.current.type||'Upper A');
 try{render()}catch(error){console.error('OVERLOAD general render failed',error)}
 try{renderProgrammeTemplates()}catch(error){console.error('OVERLOAD programme library render failed',error)}
@@ -2127,7 +2130,7 @@ if(!storageLoadError)afterLocalPersist();
 setTimeout(syncOnStartup,1200);
 })();
 </script>
-<script src="./beta-feedback.js?v=5.15.21"></script>
+<script src="./beta-feedback.js?v=5.15.22"></script>
 <script src="./update.js"></script>
 <script>
 if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {
