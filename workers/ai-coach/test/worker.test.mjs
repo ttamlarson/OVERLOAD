@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { sanitiseRequest, buildMessages, validateModelResponse, handleRequest } from "../src/index.mjs";
+import { sanitiseRequest, buildMessages, validateModelResponse, handleRequest, handleSyncRequest } from "../src/index.mjs";
 
 test("requires explicit consent and an allow-listed task", () => {
   assert.equal(sanitiseRequest({ task: "weekly_review", consent: false, context: {} }), null);
@@ -141,4 +141,27 @@ test("rejects impossible calendar dates instead of forwarding them", () => {
 test("marks supplied context as untrusted data in the model instruction", () => {
   const safe = sanitiseRequest({ task: "weekly_review", consent: true, context: { goal: "Strength" } });
   assert.match(buildMessages(safe)[0].content, /untrusted data/);
+});
+
+test("encrypted sync rejects origins outside the explicit allow-list", async () => {
+  const response = await handleSyncRequest(new Request("https://worker.example/v1/sync", {
+    method: "POST", headers: { Origin: "https://evil.example", Authorization: "Bearer " + "a".repeat(64) }, body: "{}"
+  }), { OVERLOAD_ALLOWED_ORIGIN: "https://ttamlarson.github.io", SYNC_DB: {} });
+  assert.equal(response.status, 403);
+});
+
+test("encrypted sync preflight allows only the configured application origin", async () => {
+  const response = await handleSyncRequest(new Request("https://worker.example/v1/sync", {
+    method: "OPTIONS", headers: { Origin: "https://ttamlarson.github.io" }
+  }), { OVERLOAD_ALLOWED_ORIGIN: "https://ttamlarson.github.io", SYNC_DB: {} });
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get("access-control-allow-origin"), "https://ttamlarson.github.io");
+  assert.match(response.headers.get("access-control-allow-headers"), /authorization/i);
+});
+
+test("encrypted sync requires a valid derived credential", async () => {
+  const response = await handleSyncRequest(new Request("https://worker.example/v1/sync", {
+    method: "POST", headers: { Origin: "https://ttamlarson.github.io", "content-type": "application/json" }, body: JSON.stringify({ action: "get", syncId: "a".repeat(64) })
+  }), { OVERLOAD_ALLOWED_ORIGIN: "https://ttamlarson.github.io", SYNC_DB: {} });
+  assert.equal(response.status, 401);
 });
