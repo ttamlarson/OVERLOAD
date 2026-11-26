@@ -1,11 +1,11 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.23",
+  "version": "5.15.24",
   "releaseDate": "2026-11-26",
-  "notes": "Restores legacy saved programmes and adds a reusable routine builder.",
+  "notes": "Fixes saved programme and routine selection and workout loading.",
   "releaseNotes": [
-    "Migrates legacy saved programmes into the current programme library",
-    "Adds routine creation, editing, deletion and workout loading",
-    "Saved programmes and routines are available in the workout dropdown"
+    "Retains saved programme and routine IDs when rebuilding the workout dropdown",
+    "Loads saved routine and programme days directly by their IDs",
+    "Improves validation and recovery messages for unavailable saved workouts"
   ]
 }
