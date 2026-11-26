@@ -255,7 +255,7 @@ const constantTimeEqual = (a, b) => {
   let mismatch = 0; for (let i = 0; i < a.length; i++) mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return mismatch === 0;
 };
-async function handleSyncRequest(request, env) {
+export async function handleSyncRequest(request, env) {
   const origin = request.headers.get("Origin") || "";
   const allowedOrigin = String(env.OVERLOAD_ALLOWED_ORIGIN || "");
   if (!allowedOrigin || origin !== allowedOrigin) return json({ error: "Origin not allowed." }, 403);
