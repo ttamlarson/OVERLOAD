@@ -275,7 +275,8 @@ async function handleSyncRequest(request, env) {
     if (new TextEncoder().encode(raw).byteLength > SYNC_MAX_BYTES + 4096) return json({ error: "Encrypted backup is too large." }, 413, cors);
     input = JSON.parse(raw);
   } catch { return json({ error: "Invalid sync request." }, 400, cors); }
-  if (!input || typeof input.syncId !== "string" || !/^[a-f0-9]{64}$/.test(input.syncId) || !["get", "put"].includes(input.action)) return json({ error: "Invalid sync request." }, 400, cors);\n  const expectedId = input.syncId;
+  if (!input || typeof input.syncId !== "string" || !/^[a-f0-9]{64}$/.test(input.syncId) || !["get", "put"].includes(input.action)) return json({ error: "Invalid sync request." }, 400, cors);
+  const expectedId = input.syncId;
   const existing = await env.SYNC_DB.prepare("SELECT sync_id, auth_hash, revision, ciphertext, iv, updated_at FROM overload_sync WHERE sync_id = ?").bind(expectedId).first();
   if (existing && !constantTimeEqual(existing.auth_hash, authHash)) return json({ error: "Recovery key is not valid for this backup." }, 401, cors);
   if (input.action === "get") {
