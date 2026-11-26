@@ -27,7 +27,7 @@ The Coach workspace combines recent recovery check-ins, rolling workout frequenc
 
 ## Data and backups
 
-The app stores records locally in the browser on the device and does not automatically sync between devices. Existing local storage key and data model are preserved by the rebrand. Use **Settings → Backup & restore → Export JSON backup** regularly. Keep at least two copies in separate locations. Restores download a safety copy before replacing device records. Do not clear Safari website data or change the site's origin if you need to retain existing local records.
+The app keeps its existing local storage key and data model, and now adds optional client-side encrypted cloud backup and cross-device sync. In **Settings → Encrypted cloud sync**, generate a recovery key on the primary device, save it privately, and use it to connect other devices. The browser encrypts records before upload; the Worker stores ciphertext chunks in Cloudflare D1. Sync uses revision checks to prevent silent overwrites, retains 20 previous cloud revisions, and creates recent local IndexedDB snapshots. The recovery key is required to decrypt data on a new device and is never included in portable JSON exports. Keep using **Settings → Backup & restore → Export JSON backup** as an independent safety copy. See [docs/ENCRYPTED_SYNC.md](docs/ENCRYPTED_SYNC.md) for pairing, conflict and recovery details. Do not clear Safari website data or change the site's origin if you need to retain existing local records.
 
 ## Files
 
@@ -35,6 +35,7 @@ The app stores records locally in the browser on the device and does not automat
 - `manifest.webmanifest` — OVERLOAD PWA name, launch behavior and icon declarations
 - `sw.js` — service worker and offline app-shell cache
 - `backup-validation.js` — bounded backup schema validation
+- `sync-client.js` — client-side encryption, local snapshots and cross-device sync
 - `ai-coach-client.js` — consent-gated, minimized AI review client
 - `apple-touch-icon.png` — iPhone Home Screen icon
 - `overload-mark.svg` — PWA/browser icon
