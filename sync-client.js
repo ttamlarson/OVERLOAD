@@ -48,11 +48,13 @@
   const {encryptionKey}=await derive(phrase),iv=crypto.getRandomValues(new Uint8Array(12));
   const clear=encoder.encode(JSON.stringify(payload));
   const cipher=await crypto.subtle.encrypt({name:'AES-GCM',iv},encryptionKey,clear);
-  const encoded=b64url(new Uint8Array(cipher)),chunks=[];for(let i=0;i<encoded.length;i+=180000)chunks.push(encoded.slice(i,i+180000));\n  if(chunks.length>48)throw new Error('Your backup is too large for encrypted cloud sync. Export a local JSON backup as an additional copy.');\n  return {iv:b64url(iv),chunks};
+  const encoded=b64url(new Uint8Array(cipher)),chunks=[];for(let i=0;i<encoded.length;i+=180000)chunks.push(encoded.slice(i,i+180000));
+  if(chunks.length>48)throw new Error('Your backup is too large for encrypted cloud sync. Export a local JSON backup as an additional copy.');\n  return {iv:b64url(iv),chunks};
  }
  async function decrypt(phrase,remote){
   const {encryptionKey}=await derive(phrase);
-  const joined=Array.isArray(remote.chunks)?remote.chunks.join(''):'';\n  if(!joined||joined.length>180000*48)throw new Error('Cloud backup is empty or exceeds the supported size.');\n  const clear=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64url(remote.iv)},encryptionKey,unb64url(joined));
+  const joined=Array.isArray(remote.chunks)?remote.chunks.join(''):'';
+  if(!joined||joined.length>180000*48)throw new Error('Cloud backup is empty or exceeds the supported size.');\n  const clear=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64url(remote.iv)},encryptionKey,unb64url(joined));
   const payload=JSON.parse(decoder.decode(clear));
   const validation=window.OverloadBackup?.validateBackup(payload);
   if(!validation?.valid)throw new Error(validation?.error||'Cloud backup failed integrity validation.');
