@@ -1,11 +1,12 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.24",
+  "version": "5.15.25",
   "releaseDate": "2026-11-26",
-  "notes": "Fixes saved programme and routine selection and workout loading.",
+  "notes": "Simplifies the workout selector to saved programme days and saved routines.",
   "releaseNotes": [
-    "Retains saved programme and routine IDs when rebuilding the workout dropdown",
-    "Loads saved routine and programme days directly by their IDs",
-    "Improves validation and recovery messages for unavailable saved workouts"
+    "Removes standard workouts from the workout dropdown",
+    "Lists each individual day from saved programmes as its own selectable workout",
+    "Keeps saved routines available in the dropdown",
+    "Preserves selection of saved programme days and saved routines"
   ]
 }
