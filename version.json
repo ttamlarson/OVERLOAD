@@ -1,11 +1,11 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.22",
+  "version": "5.15.23",
   "releaseDate": "2026-11-26",
-  "notes": "Adds body-weight capture from Recovery check-ins and unified Progress history.",
+  "notes": "Removes built-in standard workouts from the workout selector.",
   "releaseNotes": [
-    "Optional body-weight entry in Recovery check-ins",
-    "Recovery weigh-ins automatically appear in Progress history and trend chart",
-    "Preserves existing measurements and migrates older recovery weight entries into durable local storage"
+    "Workout selector now lists saved programme days only",
+    "Built-in standard workouts are no longer shown as dropdown options",
+    "Existing programme and workout data are not modified"
   ]
 }
