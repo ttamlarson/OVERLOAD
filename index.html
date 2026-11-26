@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="overload-ai-endpoint" content="https://overload.ttamlarson.workers.dev/v1/coach">
-<link rel="manifest" href="./manifest.webmanifest?v=5.15.27">
-<link rel="icon" href="./overload-mark.svg?v=5.15.27" type="image/svg+xml">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.27">
+<link rel="manifest" href="./manifest.webmanifest?v=5.15.22">
+<link rel="icon" href="./overload-mark.svg?v=5.15.22" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.22">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OVERLOAD">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -554,11 +554,6 @@ input,select,textarea{max-width:100%;font-size:16px}
   <div class="row" style="margin:0 0 12px"><button class="btn" id="addProgramme">+ Add programme</button></div>
   <div id="programmeTemplates" class="grid two"></div>
   <div id="programmeTemplateEditor" class="hidden" style="margin-top:12px"></div>
-  <div class="card" id="routineManager" style="margin-top:14px">
-   <div class="between"><div><h3>Saved routines</h3><div class="small">Build reusable workouts and load them into a session</div></div><button class="btn" id="addRoutine">+ Add routine</button></div>
-   <div id="routineList" style="margin-top:10px"></div>
-   <div id="routineEditor" class="hidden" style="margin-top:12px"></div>
-  </div>
  </div>
 </details>
 
@@ -740,13 +735,13 @@ input,select,textarea{max-width:100%;font-size:16px}
 <div id="toast" class="hidden" role="status"></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="./muscle-map.js?v=5.15.27"></script>
+<script src="./muscle-map.js?v=5.15.22"></script>
 <script src="./coach-engine.js"></script>
-<script src="./personal-records.js?v=5.15.27"></script>
-<script src="./programme-templates.js?v=5.15.27"></script>
-<script src="./backup-validation.js?v=5.15.27"></script>
-<script src="./sync-client.js?v=5.15.27"></script>
-<script src="./ai-coach-client.js?v=5.15.27"></script>
+<script src="./personal-records.js?v=5.15.22"></script>
+<script src="./programme-templates.js?v=5.15.22"></script>
+<script src="./backup-validation.js?v=5.15.22"></script>
+<script src="./sync-client.js?v=5.15.22"></script>
+<script src="./ai-coach-client.js?v=5.15.22"></script>
 <script>
 (() => {
 'use strict';
@@ -759,8 +754,6 @@ let state;
 let storageLoadError=false;
 let storageWriteWarningShown=false;
 let migratedRecoveryWeights=false;
-let legacyProgrammeMigration=[];
-let routineDraft=null;
 let foodRenderSnapshot=[];
 let foodEditIndex=null;
 let foodCopySource=null;
@@ -772,9 +765,7 @@ try{
  state={...defaults(),...stored};
  const d=defaults();
  state.settings={...d.settings,...state.settings};
- for(const k of ['foods','measurements','recoveries','routines','cardio'])if(!Array.isArray(state[k]))state[k]=[];
- // Preserve workout history stored in either the current array format or a legacy object format.
- if(!Array.isArray(state.workouts))state.workouts=state.workouts&&typeof state.workouts==='object'?Object.values(state.workouts):[];
+ for(const k of ['workouts','foods','measurements','recoveries','routines','cardio'])if(!Array.isArray(state[k]))state[k]=[];
  // Migrate body weights already attached to older recovery check-ins into the
  // shared measurement timeline without duplicating existing linked entries.
  state.recoveries.forEach(r=>{
@@ -789,8 +780,7 @@ try{
 
  state.foods=state.foods.filter(f=>f&&typeof f==='object').map(f=>({...f,cal:n(f.cal ?? f.calories),pro:n(f.pro ?? f.protein)}));
  state.current={...d.current,...state.current};
- legacyProgrammeMigration=Array.isArray(stored.programmes)?stored.programmes:(stored.programmes&&typeof stored.programmes==='object'?Object.values(stored.programmes):[]);
- delete state.programmes; // Legacy saved programmes are migrated below.
+ delete state.programmes; // Retire the custom split manager without touching routines or workout history.
  // Migrate the previous custom split builder into V2 saved routines without deleting history.
  if(!state.routines.length && Array.isArray(stored.customSplits)){
   state.routines=stored.customSplits.flatMap(split=>(split.days||[]).map(day=>({
@@ -1237,11 +1227,8 @@ function renderFood(){
 }
 function renderWorkoutHistory(){
  const target=$('whistory');if(!target)return;
- // Read from the in-memory state first; never replace or clear saved workout records here.
  const workouts=Array.isArray(state.workouts)?state.workouts:[];
- const fold=$('workoutHistoryFold');
- if(fold&&workouts.length)fold.open=true;
- target.innerHTML=workouts.length?[...workouts].filter(w=>w&&typeof w==='object').reverse().map((w,index)=>{
+ target.innerHTML=workouts.length?[...workouts].reverse().map((w,index)=>{
   const workout=w&&typeof w==='object'?w:{};
   const exercises=Array.isArray(workout.exercises)?workout.exercises:[];
   const completed=exercises.reduce((total,exercise)=>total+(Array.isArray(exercise&&exercise.sets)?exercise.sets.filter(set=>set&&set.done).length:0),0);
@@ -1332,35 +1319,40 @@ function populateFoodLib(){
 let templateDraft=null;
 let creatingProgramme=false;
 function ensureProgrammeTemplates(){
- if(!Array.isArray(state.programmeTemplates)||state.programmeTemplates.length===0){
-  // Restore the built-in programme templates when an older release left an empty array.
-  // Existing non-empty custom programmes are retained unchanged.
-  state.programmeTemplates=window.OverloadProgrammeTemplates.createDefaults(plans);persist();
- }
- if(!Array.isArray(state.deletedStandardWorkouts))state.deletedStandardWorkouts=[];
- if(legacyProgrammeMigration.length){
-  const normaliseExercise=ex=>({name:String(ex?.name||ex?.exercise||'Exercise'),sets:Array.isArray(ex?.sets)?ex.sets.length:(Number(ex?.sets)||3),target:String(ex?.target||ex?.reps||'8–12')});
-  const converted=legacyProgrammeMigration.map((p,index)=>{
-   const days=Array.isArray(p?.days)?p.days:Array.isArray(p?.workouts)?p.workouts:[{id:'legacy-day-'+index,name:p?.name||'Workout',exercises:p?.exercises||[]}];
-   return {id:String(p?.id||'legacy-programme-'+index),name:String(p?.name||p?.title||'Recovered programme '+(index+1)),description:String(p?.description||'Recovered from your previous saved programmes'),days:days.map((day,dayIndex)=>({id:String(day?.id||('legacy-'+index+'-'+dayIndex)),name:String(day?.name||day?.title||('Day '+(dayIndex+1))),exercises:(Array.isArray(day?.exercises)?day.exercises:[]).map(normaliseExercise)})).filter(day=>day.exercises.length)};
-  }).filter(p=>p.days.length);
-  const known=new Set(state.programmeTemplates.map(p=>String(p.id)));
-  state.programmeTemplates.push(...converted.filter(p=>!known.has(p.id)));
-  legacyProgrammeMigration=[];
+ if(!Array.isArray(state.programmeTemplates)){
+  state.programmeTemplates=window.OverloadProgrammeTemplates.createDefaults(plans);
   persist();
  }
-
+ if(!Array.isArray(state.deletedStandardWorkouts))state.deletedStandardWorkouts=[];
+ if(Array.isArray(state.routines)&&state.routines.length){
+  const known=new Set(state.programmeTemplates.map(p=>p.id));
+  const imported=state.routines.filter((r,index)=>r&&Array.isArray(r.exercises)&&r.exercises.length&&!known.has('legacy-'+String(r.id||('routine-'+index)))).map((r,index)=>({
+   id:'legacy-'+String(r.id||('routine-'+index)),name:String(r.name||'Saved routine '+(index+1)),
+   description:'Recovered from your saved routines',
+   days:[{id:'legacy-day-'+String(r.id||('routine-'+index)),name:String(r.name||'Workout'),exercises:r.exercises.map(ex=>({
+    name:String(ex.name||ex.exercise||'Exercise'),sets:Array.isArray(ex.sets)?ex.sets.length:(Number(ex.sets)||3),target:String(ex.target||ex.reps||'8–12')
+   }))}]
+  }));
+  if(imported.length){state.programmeTemplates.push(...imported);persist()}
+ }
 }
 function renderProgrammeTemplates(){
  ensureProgrammeTemplates();
  const el=$('programmeTemplates');if(!el)return;
+ const standard=Object.keys(plans).filter(name=>!state.deletedStandardWorkouts.includes(name));
+ const standardCards=standard.map(name=>`
+  <div class="card">
+   <div class="between" style="gap:8px;align-items:center"><h3>${esc(name)}</h3><button class="btn danger" data-standard-delete="${esc(name)}" aria-label="Delete ${esc(name)}">Delete</button></div>
+   <div class="small">Standard workout · Built-in template</div>
+   <div class="small" style="margin-top:8px">${(plans[name]||[]).length} exercises</div>
+  </div>`).join('');
  const savedCards=state.programmeTemplates.map(template=>`
   <div class="card">
    <div class="between" style="gap:8px;align-items:center"><h3>${esc(template.name)}</h3><div class="row" style="gap:6px;flex-wrap:nowrap"><button class="btn secondary" data-template-edit="${esc(template.id)}">Edit</button><button class="btn danger" data-template-delete="${esc(template.id)}" aria-label="Delete ${esc(template.name)}">Delete</button></div></div>
    <div class="small">${esc(template.description||'Custom training programme')}</div>
    <div style="margin-top:12px">${template.days.map((day,index)=>`<div class="between" style="gap:8px;padding:8px 0;border-top:1px solid var(--line)"><div><strong>${index+1}. ${esc(day.name)}</strong><div class="small">${day.exercises.length} exercises</div></div><button class="btn" data-template-start="${esc(template.id)}" data-template-day="${esc(day.id)}">Start</button></div>`).join('')}</div>
   </div>`).join('');
- el.innerHTML=savedCards||'<div class="empty">No saved programmes yet. Add a programme to get started.</div>';
+ el.innerHTML=(standardCards||savedCards)?standardCards+savedCards:'<div class="empty">No standard workouts or saved programmes. Add a programme to get started.</div>';
 }
 function renderProgrammeTemplateEditor(){
  const el=$('programmeTemplateEditor');if(!el)return;
@@ -1392,33 +1384,20 @@ function createProgramme(){
  $('programmeTemplateEditor').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function editProgrammeTemplate(templateId){
- const template=state.programmeTemplates.find(item=>String(item.id)===String(templateId));if(!template)return;
+ const template=state.programmeTemplates.find(item=>item.id===templateId);if(!template)return;
  creatingProgramme=false;
  templateDraft=window.OverloadProgrammeTemplates.clone(template);
  renderProgrammeTemplateEditor();
  $('programmeTemplateEditor').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function startProgrammeTemplateDay(templateId,dayId){
- const template=state.programmeTemplates.find(item=>String(item.id)===String(templateId));
- const day=template?.days?.find(item=>String(item.id)===String(dayId));
- if(!day){toast('That saved programme workout could not be found.');return}
- state.current.type=day.name||'Programme workout';
- state.current.selection='programme:'+template.id+':'+day.id;
- state.current.date=today();state.current.duration='';state.current.notes='';
- state.current.exercises=(Array.isArray(day.exercises)?day.exercises:[]).filter(ex=>ex&&String(ex.name||'').trim()).map(ex=>newEx(ex.name,ex.sets,ex.target));
- if(!state.current.exercises.length){toast('This programme day has no valid exercises. Edit the programme and add an exercise first.');return}
+ const template=state.programmeTemplates.find(item=>item.id===templateId),day=template?.days.find(item=>item.id===dayId);
+ if(!day)return;
+ state.current.type=day.name;state.current.date=today();state.current.duration='';state.current.notes='';
+ state.current.exercises=day.exercises.map(ex=>newEx(ex.name,ex.sets,ex.target));
  init();renderExercises();persist();document.querySelector('[data-tab="training"]').click();toast(day.name+' loaded');
 }
-function startRoutine(routineId){
- const routine=state.routines.find(r=>String(r.id)===String(routineId));
- if(!routine){toast('That saved routine could not be found.');return}
- state.current.type=routine.name||'Routine';
- state.current.selection='routine:'+routine.id;
- state.current.date=today();state.current.duration='';state.current.notes='';
- state.current.exercises=(Array.isArray(routine.exercises)?routine.exercises:[]).filter(ex=>ex&&String(ex.name||'').trim()).map(ex=>newEx(ex.name,ex.sets,ex.target));
- if(!state.current.exercises.length){toast('This routine has no valid exercises. Edit it and add an exercise first.');return}
- init();renderExercises();persist();document.querySelector('[data-tab="training"]').click();toast((routine.name||'Routine')+' loaded');
-}
+
 function svgLine(values,label,suffix=''){
  if(!values.length)return '<div class="empty">Not enough logged data yet.</div>';
  const w=640,h=190,p=28,nums=values.map(v=>v.value),min=Math.min(...nums),max=Math.max(...nums),range=max-min||1;
@@ -1441,26 +1420,25 @@ function renderAnalytics(){
  $('weekWorkouts').textContent=state.workouts.filter(w=>w.date>=weekStart&&w.date<=now).length;
  $('monthWorkouts').textContent=state.workouts.filter(w=>(w.date||'').startsWith(month)).length;
 }
-function render(){renderWorkoutHistory();renderHome();renderWorkoutMap();renderCoach();renderFood();renderMeasures();renderLifts();renderRecovery();renderProgrammeTemplates();renderRoutineManager();renderRoutineEditor();renderAnalytics();renderCardio();populateFoodLib();$('ctarget').value=state.settings.calories;$('ptarget').value=state.settings.protein;$('fatpercent').value=state.settings.fatPercent||27}
+function render(){renderWorkoutHistory();renderHome();renderWorkoutMap();renderCoach();renderFood();renderMeasures();renderLifts();renderRecovery();renderProgrammeTemplates();renderAnalytics();renderCardio();populateFoodLib();$('ctarget').value=state.settings.calories;$('ptarget').value=state.settings.protein;$('fatpercent').value=state.settings.fatPercent||27}
 function init(){
  applyTheme(state.settings.theme||'apex');
  const d=today();
  $('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
  ['wdate','fdate','mdate','rdate','cdate'].forEach(k=>{if($(k))$(k).value=d});
- // The workout selector contains saved programme days and saved routines only.
+ // Keep built-in workouts in one list; only user-created/recovered programmes appear as additional options.
  ensureProgrammeTemplates();
- const s=$('wtype'),t=state.current.type||'';
- const saved=state.programmeTemplates.filter(template=>template&&Array.isArray(template.days))
-  .flatMap(template=>(Array.isArray(template.days)?template.days:[]).filter(day=>day&&day.id!=null).map(day=>({value:'programme:'+template.id+':'+day.id,label:(template.name||'Saved programme')+' — '+(day.name||'Workout')})));
- const savedRoutines=(state.routines||[]).filter(r=>r&&r.id!=null).map(r=>({value:'routine:'+r.id,label:'Routine — '+(r.name||'Untitled routine')}));
+ const s=$('wtype'),t=state.current.type||'Upper A';
+ const standard=Object.keys(plans).filter(name=>!state.deletedStandardWorkouts.includes(name));
+ const saved=state.programmeTemplates.filter(template=>String(template.id).startsWith('legacy-')||!['upper-lower','push-pull-legs'].includes(template.id))
+  .flatMap(template=>(template.days||[]).map(day=>({value:'programme:'+template.id+':'+day.id,label:template.name+' — '+day.name})));
  s.replaceChildren();
+ const standardGroup=document.createElement('optgroup');standardGroup.label='Standard workouts';
+ standard.forEach(name=>{const option=document.createElement('option');option.value=name;option.textContent=name;standardGroup.appendChild(option)});
+ s.appendChild(standardGroup);
  if(saved.length){const savedGroup=document.createElement('optgroup');savedGroup.label='Saved programme days';saved.forEach(item=>{const option=document.createElement('option');option.value=item.value;option.textContent=item.label;savedGroup.appendChild(option)});s.appendChild(savedGroup)}
- if(savedRoutines.length){const routineGroup=document.createElement('optgroup');routineGroup.label='Saved routines';savedRoutines.forEach(item=>{const option=document.createElement('option');option.value=item.value;option.textContent=item.label;routineGroup.appendChild(option)});s.appendChild(routineGroup)}
- const prior=String(state.current.selection||'');
  const selected=saved.find(item=>item.label.endsWith(' — '+t));
- const selectedRoutine=savedRoutines.find(item=>item.value===(String(t).startsWith('routine:')?'routine:'+String(t).slice(8):'routine:'+t));
- const fallback=selected?.value||selectedRoutine?.value||saved[0]?.value||savedRoutines[0]?.value||'';
- s.value=[...s.options].some(option=>option.value===prior)?prior:fallback;
+ s.value=selected?selected.value:(standard.includes(t)?t:standard[0]||'');
  if(!s.value&&s.options.length)s.selectedIndex=0;
  $('wdate').value=state.current.date||d;
  $('duration').value=state.current.duration||'';
@@ -1529,27 +1507,7 @@ function init(){
    }
  });
 
- function workoutSelectionLabel(value){
- if(String(value).startsWith('programme:')){
-  const [,templateId,dayId]=String(value).split(':');
-  const template=state.programmeTemplates.find(item=>String(item.id)===String(templateId));
-  const day=template?.days?.find(item=>String(item.id)===String(dayId));
-  return day?.name||'Workout';
- }
- if(String(value).startsWith('routine:')){
-  const routine=state.routines.find(item=>String(item.id)===String(String(value).slice(8)));
-  return routine?.name||'Workout';
- }
- return String(value||'Workout');
-}
-function sync(){
- const selection=$('wtype').value;
- state.current.selection=selection;
- state.current.type=workoutSelectionLabel(selection);
- state.current.date=$('wdate').value;
- state.current.duration=$('duration').value;
- state.current.notes=$('wnotes').value;
-}
+ function sync(){state.current.type=$('wtype').value;state.current.date=$('wdate').value;state.current.duration=$('duration').value;state.current.notes=$('wnotes').value}
 function activateView(tab){
  const target=$(tab);if(!target)return;
  document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
@@ -1580,39 +1538,6 @@ document.querySelectorAll('[data-workout]').forEach(card => {
 });
 
 $('addProgramme').onclick=createProgramme;
-$('addRoutine').onclick=createRoutine;
-$('routineEditor').oninput=e=>{
- if(!routineDraft)return;
- const t=e.target;
- if(t.hasAttribute('data-routine-name'))routineDraft.name=t.value;
- else if(t.dataset.routineExercise!==undefined)routineDraft.exercises[Number(t.dataset.routineExercise)].name=t.value;
- else if(t.dataset.routineSets!==undefined)routineDraft.exercises[Number(t.dataset.routineSets)].sets=Math.max(1,Math.min(10,Number(t.value)||1));
- else if(t.dataset.routineTarget!==undefined)routineDraft.exercises[Number(t.dataset.routineTarget)].target=t.value;
-};
-$('routineEditor').onclick=e=>{
- const b=e.target.closest('button');if(!b||!routineDraft)return;
- if(b.hasAttribute('data-routine-cancel')){routineDraft=null;renderRoutineEditor();return}
- if(b.hasAttribute('data-routine-add-exercise')){routineDraft.exercises.push({name:'',sets:3,target:'8–12'});renderRoutineEditor();return}
- if(b.dataset.routineRemove!==undefined){if(routineDraft.exercises.length<=1){toast('Keep at least one exercise in a routine');return}routineDraft.exercises.splice(Number(b.dataset.routineRemove),1);renderRoutineEditor();return}
- if(b.hasAttribute('data-routine-save')){
-  const name=routineDraft.name.trim();
-  if(!name||!routineDraft.exercises.length||routineDraft.exercises.some(ex=>!ex.name.trim())){toast('Enter a routine name and at least one exercise');return}
-  const routine={id:routineDraft.id||id(),name,exercises:routineDraft.exercises.map(ex=>({name:ex.name.trim(),sets:Math.max(1,Math.min(10,Number(ex.sets)||3)),target:String(ex.target||'8–12')}))};
-  const index=state.routines.findIndex(r=>String(r.id)===String(routine.id));
-  if(index>=0)state.routines[index]=routine;else state.routines.push(routine);
-  routineDraft=null;save();renderRoutineManager();renderRoutineEditor();toast('Routine saved');
- }
-};
-$('routineList').onclick=e=>{
- const b=e.target.closest('button');if(!b)return;
- if(b.dataset.routineLoad){startRoutine(b.dataset.routineLoad);return}
- if(b.dataset.routineEdit){editRoutine(b.dataset.routineEdit);return}
- if(b.dataset.routineDelete){
-  const r=state.routines.find(x=>String(x.id)===String(b.dataset.routineDelete));
-  if(!r||!confirm('Delete the saved routine "'+(r.name||'Untitled routine')+'"? Completed workout history will not be deleted.'))return;
-  state.routines=state.routines.filter(x=>String(x.id)!==String(b.dataset.routineDelete));save();renderRoutineManager();init();toast('Routine deleted');
- }
-};
 $('programmeTemplates').onclick=e=>{
  const b=e.target.closest('button');if(!b)return;
  if(b.dataset.standardDelete){
@@ -1624,9 +1549,9 @@ $('programmeTemplates').onclick=e=>{
  }
  if(b.dataset.templateEdit){editProgrammeTemplate(b.dataset.templateEdit);return}
  if(b.dataset.templateDelete){
-  const template=state.programmeTemplates.find(item=>String(item.id)===String(b.dataset.templateDelete));if(!template)return;
+  const template=state.programmeTemplates.find(item=>item.id===b.dataset.templateDelete);if(!template)return;
   if(!confirm(`Delete the programme “${template.name}”? This will not delete completed workout history.`))return;
-  state.programmeTemplates=state.programmeTemplates.filter(item=>String(item.id)!==String(b.dataset.templateDelete));
+  state.programmeTemplates=state.programmeTemplates.filter(item=>item.id!==b.dataset.templateDelete);
   if(templateDraft?.id===b.dataset.templateDelete){templateDraft=null;creatingProgramme=false;renderProgrammeTemplateEditor()}
   save();renderProgrammeTemplates();toast('Programme deleted');return;
  }
@@ -1659,7 +1584,7 @@ $('programmeTemplateEditor').onclick=e=>{
    if(state.programmeTemplates.some(item=>item.name.trim().toLowerCase()===name.toLowerCase())){toast('A programme with that name already exists');return}
    state.programmeTemplates.push(programme);
   }else{
-   const index=state.programmeTemplates.findIndex(item=>String(item.id)===String(templateDraft.id));
+   const index=state.programmeTemplates.findIndex(item=>item.id===templateDraft.id);
    if(index<0){toast('Programme could not be found');return}
    state.programmeTemplates[index]=programme;
   }
@@ -1675,16 +1600,12 @@ if(workoutMapFold){
  workoutMapFold.addEventListener('toggle',()=>localStorage.setItem(foldKey,workoutMapFold.open?'open':'closed'));
 }
 $('loadplan').onclick=()=>{
- const selected=String($('wtype').value||'');
- if(!selected){toast('Choose a workout to load.');return}
- if(selected.startsWith('routine:')){startRoutine(selected.slice(8));return}
+ const selected=$('wtype').value;
  if(selected.startsWith('programme:')){
-  const parts=selected.split(':');
-  if(parts.length!==3){toast('This saved programme option is invalid.');return}
-  startProgrammeTemplateDay(parts[1],parts[2]);return;
+  const [,templateId,dayId]=selected.split(':');
+  startProgrammeTemplateDay(templateId,dayId);return;
  }
- if(!Object.prototype.hasOwnProperty.call(plans,selected)){toast('That workout could not be found. Refresh the workout list and try again.');return}
- sync();setPlan(selected);state.current.selection=selected;persist();toast('Workout loaded')
+ sync();setPlan(selected);persist();toast('Workout loaded')
 };
 $('addex').onclick=()=>{state.current.exercises.push(newEx('New exercise'));renderExercises();persist()};
 $('exercises').oninput=e=>{const t=e.target;if(t.dataset.name){const x=state.current.exercises.find(a=>a.id===t.dataset.name);if(x)x.name=t.value}if(t.dataset.set){const x=state.current.exercises.find(a=>a.id===t.dataset.set),s=x?.sets[+t.dataset.i];if(s)s[t.dataset.key]=t.value;renderWorkoutMap()}
@@ -2209,7 +2130,7 @@ if(!storageLoadError)afterLocalPersist();
 setTimeout(syncOnStartup,1200);
 })();
 </script>
-<script src="./beta-feedback.js?v=5.15.27"></script>
+<script src="./beta-feedback.js?v=5.15.22"></script>
 <script src="./update.js"></script>
 <script>
 if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {

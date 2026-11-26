@@ -1,12 +1,11 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.27",
+  "version": "5.15.22",
   "releaseDate": "2026-11-26",
-  "notes": "Restore programme library defaults and populate workout selector from programme days.",
+  "notes": "Adds body-weight capture from Recovery check-ins and unified Progress history.",
   "releaseNotes": [
-    "Restores built-in programme templates when an older app state contains an empty programme list",
-    "Displays saved programmes in the programme manager without listing individual standard workouts",
-    "Populates workout selector with individual saved programme days and saved routines"
-  ],
-  "dataPreservation": "Existing non-empty custom programmes, routines, workouts and history are retained."
+    "Optional body-weight entry in Recovery check-ins",
+    "Recovery weigh-ins automatically appear in Progress history and trend chart",
+    "Preserves existing measurements and migrates older recovery weight entries into durable local storage"
+  ]
 }
