@@ -1941,10 +1941,10 @@ $('import').onchange=async e=>{
   if(confirm('Replace the records on this device with this backup? OVERLOAD will download a separate safety copy of your current records first.')){
    if(storageLoadError)throw new Error('Current browser data could not be read, so restore is disabled to protect it.');
    downloadBackup('overload-pre-restore-safety-'+today()+'.json',state);
-   const d=defaults(),next={...d,...v,settings:{...d.settings,...v.settings},current:{...d.current,...v.current},workouts:v.workouts,foods:v.foods,measurements:v.measurements,recoveries:v.recoveries||[],routines:v.routines||[],cardio:v.cardio||[]};
+   const d=defaults(),next={...d,...v,settings:{...d.settings,...v.settings,...(state.settings.syncRecoveryKey?{syncRecoveryKey:state.settings.syncRecoveryKey,syncEnabled:state.settings.syncEnabled,syncRevision:state.settings.syncRevision,syncDirty:true}:{})},current:{...d.current,...v.current},workouts:v.workouts,foods:v.foods,measurements:v.measurements,recoveries:v.recoveries||[],routines:v.routines||[],cardio:v.cardio||[]};
    delete next.programmes;
    try{localStorage.setItem(KEY,JSON.stringify(next))}catch(error){throw new Error('Restore could not be saved because browser storage is full or unavailable. Your existing records have not been replaced.')}
-   state=next;init();setPlan(state.current.type);render();toast('Backup restored successfully');
+   state=next;storageLoadError=false;init();setPlan(state.current.type);render();afterLocalPersist();toast('Backup restored successfully');
   }
  }catch(error){alert(error&&error.message?error.message:'Could not read this backup. Your existing records were not replaced.')}
  e.target.value='';
