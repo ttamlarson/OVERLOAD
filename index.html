@@ -437,7 +437,7 @@ input,select,textarea{max-width:100%;font-size:16px}
    <button class="btn secondary" data-go="settings">Settings</button>
   </div>
  </div>
- <div class="notice">Your records stay on this device. Export a backup regularly from Settings to protect your training and nutrition history.</div>
+ <div class="notice">Your records stay local by default. Enable encrypted cloud sync in Settings to protect your training history across devices, and keep a separate JSON backup.</div>
 </section>
 
 
@@ -717,7 +717,7 @@ input,select,textarea{max-width:100%;font-size:16px}
  </div>
  <p class="small">Restoring replaces records on this device. OVERLOAD downloads a safety copy of your current records first.</p>
 </div>
- <div class="card"><h3>Local storage</h3><p>Your records stay in this browser on this device. They are not protected by an online account or automatic cloud backup. Anyone with access to your unlocked device and browser profile may be able to access them. Clearing browser data, private browsing cleanup, device loss or browser storage failure can erase them.</p><button class="btn danger" id="erase">Delete all app data</button></div>
+ <div class="card"><h3>Local storage</h3><p>Your primary records remain in this browser on this device. If encrypted cloud sync is enabled, a client-encrypted copy is also stored in Cloudflare and can be restored with your private recovery key. Anyone with access to your unlocked device and browser profile may access local records. Clearing browser data, private browsing cleanup, device loss or browser storage failure can still erase the local copy.</p><button class="btn danger" id="erase">Delete all app data</button></div>
 </section>
 <footer>OVERLOAD · BUILT UNDER PRESSURE.</footer>
 </div>
