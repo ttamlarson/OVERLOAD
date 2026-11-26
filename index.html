@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="overload-ai-endpoint" content="https://overload.ttamlarson.workers.dev/v1/coach">
-<link rel="manifest" href="./manifest.webmanifest?v=5.15.23">
-<link rel="icon" href="./overload-mark.svg?v=5.15.23" type="image/svg+xml">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.23">
+<link rel="manifest" href="./manifest.webmanifest?v=5.15.24">
+<link rel="icon" href="./overload-mark.svg?v=5.15.24" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.24">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OVERLOAD">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -740,13 +740,13 @@ input,select,textarea{max-width:100%;font-size:16px}
 <div id="toast" class="hidden" role="status"></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="./muscle-map.js?v=5.15.23"></script>
+<script src="./muscle-map.js?v=5.15.24"></script>
 <script src="./coach-engine.js"></script>
-<script src="./personal-records.js?v=5.15.23"></script>
-<script src="./programme-templates.js?v=5.15.23"></script>
-<script src="./backup-validation.js?v=5.15.23"></script>
-<script src="./sync-client.js?v=5.15.23"></script>
-<script src="./ai-coach-client.js?v=5.15.23"></script>
+<script src="./personal-records.js?v=5.15.24"></script>
+<script src="./programme-templates.js?v=5.15.24"></script>
+<script src="./backup-validation.js?v=5.15.24"></script>
+<script src="./sync-client.js?v=5.15.24"></script>
+<script src="./ai-coach-client.js?v=5.15.24"></script>
 <script>
 (() => {
 'use strict';
@@ -1397,105 +1397,15 @@ function editProgrammeTemplate(templateId){
  $('programmeTemplateEditor').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function startProgrammeTemplateDay(templateId,dayId){
- const template=state.programmeTemplates.find(item=>item.id===templateId),day=template?.days.find(item=>item.id===dayId);
- if(!day)return;
- state.current.type=day.name;state.current.date=today();state.current.duration='';state.current.notes='';
- state.current.exercises=day.exercises.map(ex=>newEx(ex.name,ex.sets,ex.target));
- init();renderExercises();persist();document.querySelector('[data-tab="training"]').click();toast(day.name+' loaded');
-}
-
-function renderRoutineEditor(){
- const el=$('routineEditor');if(!el)return;
- if(!routineDraft){el.classList.add('hidden');el.innerHTML='';return}
- el.classList.remove('hidden');
- el.innerHTML='<div class="card"><div class="between"><h3>'+(routineDraft.id?'Edit routine':'Create routine')+'</h3><button class="iconbtn" data-routine-cancel aria-label="Close editor">✕</button></div>'+
- '<div class="field"><label>Routine name</label><input data-routine-name maxlength="60" value="'+esc(routineDraft.name)+'" placeholder="e.g. Chest and triceps"></div>'+
- '<h4 style="margin:16px 0 8px">Exercises</h4>'+
- routineDraft.exercises.map((ex,index)=>'<div class="formgrid" style="margin:8px 0;align-items:end"><div class="field" style="grid-column:span 2"><label>Exercise '+(index+1)+'</label><input data-routine-exercise="'+index+'" value="'+esc(ex.name)+'" placeholder="Exercise name"></div><div class="field"><label>Sets</label><input type="number" min="1" max="10" data-routine-sets="'+index+'" value="'+esc(ex.sets)+'"></div><div class="field"><label>Rep target</label><input data-routine-target="'+index+'" value="'+esc(ex.target)+'" placeholder="8–12"></div><button class="btn danger" data-routine-remove="'+index+'">Remove</button></div>').join('')+
- '<div class="row" style="margin-top:10px"><button class="btn secondary" data-routine-add-exercise>+ Add exercise</button><button class="btn" data-routine-save>Save routine</button><button class="btn secondary" data-routine-cancel>Cancel</button></div></div>';
-}
-function renderRoutineManager(){
- const list=$('routineList');if(!list)return;
- const routines=Array.isArray(state.routines)?state.routines:[];
- list.innerHTML=routines.length?routines.map(r=>'<div class="listitem"><div class="between"><strong>'+esc(r.name||'Untitled routine')+'</strong><span class="small">'+(Array.isArray(r.exercises)?r.exercises.length:0)+' exercises</span></div><div class="row" style="margin-top:8px"><button class="btn" data-routine-load="'+esc(r.id)+'">Load</button><button class="btn secondary" data-routine-edit="'+esc(r.id)+'">Edit</button><button class="btn danger" data-routine-delete="'+esc(r.id)+'">Delete</button></div></div>').join(''):'<div class="empty">No saved routines yet. Add a routine to build your own reusable workout.</div>';
-}
-function createRoutine(){
- routineDraft={id:'',name:'New routine',exercises:(state.current.exercises||[]).map(ex=>({name:String(ex.name||''),sets:Array.isArray(ex.sets)?ex.sets.length:(Number(ex.sets)||3),target:String(ex.target||'8–12')}))};
- if(!routineDraft.exercises.length)routineDraft.exercises=[{name:'',sets:3,target:'8–12'}];
- renderRoutineEditor();$('routineEditor').scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function editRoutine(routineId){
- const routine=state.routines.find(r=>String(r.id)===String(routineId));if(!routine)return;
- routineDraft={id:routine.id,name:routine.name||'',exercises:(routine.exercises||[]).map(ex=>({name:ex.name||'',sets:Array.isArray(ex.sets)?ex.sets.length:(Number(ex.sets)||3),target:ex.target||'8–12'}))};
- renderRoutineEditor();$('routineEditor').scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function startRoutine(routineId){
- const routine=state.routines.find(r=>String(r.id)===String(routineId));if(!routine)return;
- state.current.type='routine:'+routine.id;state.current.date=today();state.current.duration='';state.current.notes='';
- state.current.exercises=(routine.exercises||[]).map(ex=>newEx(ex.name,ex.sets,ex.target));
- init();renderExercises();persist();document.querySelector('[data-tab="training"]').click();toast((routine.name||'Routine')+' loaded');
-}
-
-function svgLine(values,label,suffix=''){
- if(!values.length)return '<div class="empty">Not enough logged data yet.</div>';
- const w=640,h=190,p=28,nums=values.map(v=>v.value),min=Math.min(...nums),max=Math.max(...nums),range=max-min||1;
- const pts=values.map((v,i)=>`${p+i*(w-2*p)/Math.max(1,values.length-1)},${h-p-(v.value-min)*(h-2*p)/range}`).join(' ');
- return `<div class="small">${esc(label)}</div><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label)} chart" style="width:100%;height:auto;overflow:visible"><line x1="${p}" y1="${h-p}" x2="${w-p}" y2="${h-p}" stroke="currentColor" opacity=".25"/><polyline points="${pts}" fill="none" stroke="var(--green)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>${values.map((v,i)=>{const x=p+i*(w-2*p)/Math.max(1,values.length-1),y=h-p-(v.value-min)*(h-2*p)/range;return `<circle cx="${x}" cy="${y}" r="5" fill="var(--green)"><title>${esc(v.label)}: ${v.value}${suffix}</title></circle>`}).join('')}</svg><div class="between small"><span>${esc(values[0].label)}</span><span>${esc(values.at(-1).label)}</span></div>`;
-}
-function renderAnalytics(){
- const select=$('analyticsExercise');if(!select)return;
- const all={};state.workouts.forEach(w=>(w.exercises||[]).forEach(e=>{const key=(e.name||'').trim();if(!key)return;(all[key]??=[]).push({date:w.date||'',sets:e.sets||[]})}));
- const names=Object.keys(all).sort(),current=select.value;
- select.innerHTML='<option value="">Select an exercise</option>'+names.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
- if(names.includes(current))select.value=current;
- const chosen=select.value||names[0]||'';
- if(chosen){select.value=chosen;const points=all[chosen].sort((a,b)=>a.date.localeCompare(b.date)).map(x=>({label:x.date?x.date.slice(5):'—',value:Math.max(0,...x.sets.filter(z=>n(z.weight)>0).map(z=>n(z.weight)))})).filter(x=>x.value>0);$('strengthTrend').innerHTML=svgLine(points,chosen+' · heaviest recorded set',' kg');const best=Math.max(0,...points.map(x=>x.value));const latest=all[chosen].flatMap(x=>x.sets).filter(z=>n(z.weight)>0&&n(z.reps)>0).sort((a,b)=>(n(b.weight)*(1+n(b.reps)/30))-(n(a.weight)*(1+n(a.reps)/30)))[0];$('bestLoad').textContent=best?best+' kg':'—';$('estimatedMax').textContent=latest?(n(latest.weight)*(1+n(latest.reps)/30)).toFixed(1)+' kg':'—';}
- else{$('strengthTrend').innerHTML='<div class="empty">Log loaded sets to see strength progression.</div>';$('bestLoad').textContent='—';$('estimatedMax').textContent='—'}
- const byWeek={};state.workouts.forEach(w=>{if(!w.date)return;const d=new Date(w.date+'T12:00:00'),day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);const key=d.toISOString().slice(0,10);let volume=0;(w.exercises||[]).forEach(e=>(e.sets||[]).filter(z=>z.done).forEach(z=>volume+=n(z.weight)*n(z.reps)));byWeek[key]=(byWeek[key]||0)+volume});
- const volumes=Object.entries(byWeek).sort((a,b)=>a[0].localeCompare(b[0])).slice(-8).map(([date,value])=>({label:date.slice(5),value}));
- $('volumeTrend').innerHTML=svgLine(volumes,'Completed training volume',' kg');
- const now=today(),month=now.slice(0,7),wk=new Date(now+'T12:00:00');wk.setDate(wk.getDate()-((wk.getDay()+6)%7));const weekStart=wk.toISOString().slice(0,10);
- $('weekWorkouts').textContent=state.workouts.filter(w=>w.date>=weekStart&&w.date<=now).length;
- $('monthWorkouts').textContent=state.workouts.filter(w=>(w.date||'').startsWith(month)).length;
-}
-function render(){renderWorkoutHistory();renderHome();renderWorkoutMap();renderCoach();renderFood();renderMeasures();renderLifts();renderRecovery();renderProgrammeTemplates();renderRoutineManager();renderRoutineEditor();renderAnalytics();renderCardio();populateFoodLib();$('ctarget').value=state.settings.calories;$('ptarget').value=state.settings.protein;$('fatpercent').value=state.settings.fatPercent||27}
-function init(){
- applyTheme(state.settings.theme||'apex');
- const d=today();
- $('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
- ['wdate','fdate','mdate','rdate','cdate'].forEach(k=>{if($(k))$(k).value=d});
- // Keep built-in workouts in one list; only user-created/recovered programmes appear as additional options.
- ensureProgrammeTemplates();
- const s=$('wtype'),t=state.current.type||'Upper A';
- const standard=Object.keys(plans).filter(name=>!state.deletedStandardWorkouts.includes(name));
- const saved=state.programmeTemplates.filter(template=>!['upper-lower','push-pull-legs'].includes(template.id))
-  .flatMap(template=>(template.days||[]).map(day=>({value:'programme:'+template.id+':'+day.id,label:template.name+' — '+day.name})));
- const savedRoutines=(state.routines||[]).map(r=>({value:'routine:'+r.id,label:'Routine — '+r.name}));
- s.replaceChildren();
- const standardGroup=document.createElement('optgroup');standardGroup.label='Standard workouts';
- standard.forEach(name=>{const option=document.createElement('option');option.value=name;option.textContent=name;standardGroup.appendChild(option)});
- s.appendChild(standardGroup);
- if(saved.length){const savedGroup=document.createElement('optgroup');savedGroup.label='Saved programmes';saved.forEach(item=>{const option=document.createElement('option');option.value=item.value;option.textContent=item.label;savedGroup.appendChild(option)});s.appendChild(savedGroup)}
- if(savedRoutines.length){const routineGroup=document.createElement('optgroup');routineGroup.label='Saved routines';savedRoutines.forEach(item=>{const option=document.createElement('option');option.value=item.value;option.textContent=item.label;routineGroup.appendChild(option)});s.appendChild(routineGroup)}
- const selected=saved.find(item=>item.label.endsWith(' — '+t));
- const selectedRoutine=savedRoutines.find(item=>item.value===(String(t).startsWith('routine:')?'routine:'+String(t).slice(8):'routine:'+t));
- s.value=selected?selected.value:(selectedRoutine?selectedRoutine.value:(standard.includes(t)?t:standard[0]||''));
- if(!s.value&&s.options.length)s.selectedIndex=0;
- $('wdate').value=state.current.date||d;
- $('duration').value=state.current.duration||'';
- $('wnotes').value=state.current.notes||'';
-}
-
- // OVERLOAD icon system: consistent inline line icons, no emoji dependencies.
- const OVERLOAD_ICONS={
-  home:'<path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/>',
-  dumbbell:'<path d="M6 5v14M3 8v8M18 5v14M21 8v8M6 12h12"/>',
-  activity:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',
-  nutrition:'<path d="M12 21c-5-3-8-7-8-11a4 4 0 0 1 8-1 4 4 0 0 1 8 1c0 4-3 8-8 11Z"/><path d="M12 9v7"/>',
-  chart:'<path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/>',
-  heart:'<path d="M20.8 8.8c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11a4.7 4.7 0 0 1 8.8-2.2 4.7 4.7 0 0 1 8.8 2.2Z"/>',
-  recovery:'<path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/><path d="m16.5 3 .6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6.6-1.4Z"/>',
-  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6v-2.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5V5h2.6v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2v2.6h-.2a1.7 1.7 0 0 0-1.5 1Z"/>'
+  const template=state.programmeTemplates.find(item=>String(item.id)===String(templateId));
+  const day=template?.days?.find(item=>String(item.id)===String(dayId));
+  if(!day){toast('That saved programme workout could not be found.');return}
+  state.current.type=day.name||'Programme workout';
+  state.current.selection='programme:'+template.id+':'+day.id;
+  state.current.date=today();state.current.duration='';state.current.notes='';
+  state.current.exercises=(Array.isArray(day.exercises)?day.exercises:[]).filter(ex=>ex&&String(ex.name||'').trim()).map(ex=>newEx(ex.name,ex.sets,ex.target));
+  if(!state.current.exercises.length){toast('This programme day has no valid exercises. Edit the programme and add an exercise first.');return}
+  init();renderExercises();persist();document.querySelector('[data-tab="training"]').click();toast(day.name+' loaded');
  };
  document.querySelectorAll('[data-icon]').forEach(b=>{const p=OVERLOAD_ICONS[b.dataset.icon];if(p){const i=document.createElement('span');i.className='nav-ico';i.setAttribute('aria-hidden','true');i.innerHTML='<svg viewBox="0 0 24 24">'+p+'</svg>';b.prepend(i)}});
  // Remember dashboard disclosure state independently of workout records.
@@ -1548,7 +1458,27 @@ function init(){
    }
  });
 
- function sync(){state.current.type=$('wtype').value;state.current.date=$('wdate').value;state.current.duration=$('duration').value;state.current.notes=$('wnotes').value}
+ function workoutSelectionLabel(value){
+  if(String(value).startsWith('programme:')){
+   const [,templateId,dayId]=String(value).split(':');
+   const template=state.programmeTemplates.find(item=>String(item.id)===String(templateId));
+   const day=template?.days?.find(item=>String(item.id)===String(dayId));
+   return day?.name||'Workout';
+  }
+  if(String(value).startsWith('routine:')){
+   const routine=state.routines.find(item=>String(item.id)===String(String(value).slice(8)));
+   return routine?.name||'Workout';
+  }
+  return String(value||'Workout');
+ }
+ function sync(){
+  const selection=$('wtype').value;
+  state.current.selection=selection;
+  state.current.type=workoutSelectionLabel(selection);
+  state.current.date=$('wdate').value;
+  state.current.duration=$('duration').value;
+  state.current.notes=$('wnotes').value;
+ }
 function activateView(tab){
  const target=$(tab);if(!target)return;
  document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
@@ -1674,92 +1604,16 @@ if(workoutMapFold){
  workoutMapFold.addEventListener('toggle',()=>localStorage.setItem(foldKey,workoutMapFold.open?'open':'closed'));
 }
 $('loadplan').onclick=()=>{
- const selected=$('wtype').value;
- if(selected.startsWith('routine:')){startRoutine(selected.slice(8));return}
- if(selected.startsWith('programme:')){
-  const [,templateId,dayId]=selected.split(':');
-  startProgrammeTemplateDay(templateId,dayId);return;
- }
- sync();setPlan(selected);persist();toast('Workout loaded')
-};
-$('addex').onclick=()=>{state.current.exercises.push(newEx('New exercise'));renderExercises();persist()};
-$('exercises').oninput=e=>{const t=e.target;if(t.dataset.name){const x=state.current.exercises.find(a=>a.id===t.dataset.name);if(x)x.name=t.value}if(t.dataset.set){const x=state.current.exercises.find(a=>a.id===t.dataset.set),s=x?.sets[+t.dataset.i];if(s)s[t.dataset.key]=t.value;renderWorkoutMap()}
- // FIX: keep a half-finished workout across reloads
- sync();persist()};
-$('exercises').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.remove){state.current.exercises=state.current.exercises.filter(x=>x.id!==b.dataset.remove);renderExercises()}if(b.dataset.addset){const x=state.current.exercises.find(a=>a.id===b.dataset.addset);x?.sets.push({weight:'',reps:'',done:false});renderExercises()}if(b.dataset.done){const x=state.current.exercises.find(a=>a.id===b.dataset.done),s=x?.sets[+b.dataset.i];if(s){s.done=!s.done;renderExercises()}}if(b.hasAttribute('data-rest')){setTimer(90);startTimer()}persist()};
-['wtype','wdate','duration','wnotes'].forEach(k=>{$(k).addEventListener('input',()=>{sync();persist()});$(k).addEventListener('change',()=>{sync();persist()})});
-$('saveworkout').onclick=async()=>{sync();if(!state.current.exercises.length){toast('Load or add exercises first');return}const previousPRs=window.OverloadPR?window.OverloadPR.calculate(state.workouts):{};state.workouts.push({id:id(),...JSON.parse(JSON.stringify(state.current)),savedAt:new Date().toISOString()});const nextPRs=window.OverloadPR?window.OverloadPR.calculate(state.workouts):{};const achievements=window.OverloadPR?window.OverloadPR.newRecords(previousPRs,nextPRs):[];state.current={type:state.current.type,date:today(),duration:'',notes:'',exercises:[]};init();setPlan(state.current.type);save();if(achievements.length)await notifyPersonalRecordAchievements(achievements);else toast('Workout saved')};
-$('prNotify').onclick=async()=>{if(state.settings.prNotifications){state.settings.prNotifications=false;persist();renderPersonalRecords();toast('PR alerts disabled');return}if(!('Notification' in window)){toast('Notifications are not supported by this browser');return}try{let permission=Notification.permission;if(permission!=='granted')permission=await Notification.requestPermission();if(permission==='granted'){state.settings.prNotifications=true;persist();renderPersonalRecords();toast('PR alerts enabled')}else{state.settings.prNotifications=false;persist();renderPersonalRecords();toast(permission==='denied'?'Notifications are blocked in browser settings':'Notification permission not granted')}}catch(error){toast('Could not enable notifications')}};
- $('clearworkout').onclick=()=>{if(confirm('Clear the current unsaved workout?')){state.current.exercises=[];$('wnotes').value='';state.current.notes='';renderExercises();persist()}};
-$('whistory').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.workDel){state.workouts=state.workouts.filter(w=>w.id!==b.dataset.workDel);save()}if(b.dataset.reload){const w=state.workouts.find(w=>w.id===b.dataset.reload);state.current=JSON.parse(JSON.stringify(w));delete state.current.id;delete state.current.savedAt;init();renderExercises();persist();document.querySelector('[data-tab="training"]').click()}}
-function validFoodIndex(rawIndex){
- if(!Array.isArray(state.foods)||!/^(0|[1-9]\d*)$/.test(rawIndex))return null;
- const index=Number(rawIndex);
- if(!Number.isSafeInteger(index)||index<0||index>=state.foods.length)return null;
- return foodRenderSnapshot[index]===state.foods[index]?index:null;
-}
-function setFoodEditorLocked(locked){
- $('fdate').disabled=locked;
- $('foodlib').disabled=locked;
- $('fbarcode').disabled=locked;
- $('lookupBarcode').disabled=locked;
- $('scanBarcode').disabled=locked;
-}
-function resetFoodEditor(){
- foodEditIndex=null;foodCopySource=null;foodEditOriginal=null;foodEditInputSnapshot=null;barcodeBasis='manual';
- $('fname').value='';$('fcal').value='';$('fpro').value='';$('fcarb').value='';$('ffat').value='';$('famount').value='';
- $('famountWrap').classList.add('hidden');
- $('fbarcode').value='';$('barcodeStatus').textContent='';
- $('addfood').textContent='Add food';$('cancelFoodEdit').classList.add('hidden');
- setFoodEditorLocked(false);
-}
-function beginFoodEdit(index){
- const food=state.foods[index];
- foodCopySource=null;
- if(!food||typeof food!=='object')return;
- foodEditIndex=index;foodEditOriginal=food;foodEditInputSnapshot={};barcodeBasis='manual';
- const fields={name:'fname',cal:'fcal',pro:'fpro',carb:'fcarb',fat:'ffat'};
- for(const [key,inputId] of Object.entries(fields)){
-  const raw=key==='name'?(food.name??''):(food[key]??'');
-  const value=String(raw);
-  $(inputId).value=value;
-  foodEditInputSnapshot[inputId]=$(inputId).value;
- }
- $('famount').value='';$('famountWrap').classList.add('hidden');
- $('addfood').textContent='Update food';$('cancelFoodEdit').classList.remove('hidden');
- $('barcodeStatus').textContent='Editing this record preserves its ID, date, and unrelated fields.';
- setFoodEditorLocked(true);
-}
-function changedFoodValue(inputId,existingKey){
- const raw=$(inputId).value;
- if(raw===foodEditInputSnapshot[inputId])return {changed:false};
- if(raw.trim()==='')return {changed:true,value:''};
- return {changed:true,value:existingKey==='name'?raw.trim():nutritionNumber(raw)};
-}
-$('addfood').onclick=()=>{
- const name=$('fname').value.trim();
- if(!name){toast('Enter a food name');return}
- if(foodEditIndex!==null){
-  const index=validFoodIndex(String(foodEditIndex));
-  if(index===null||state.foods[index]!==foodEditOriginal){resetFoodEditor();toast('Food changed since editing began; reopen it and try again.');renderFood();return}
-  const updated={...foodEditOriginal};
-  for(const [inputId,key] of [['fname','name'],['fcal','cal'],['fpro','pro'],['fcarb','carb'],['ffat','fat']]){
-   const change=changedFoodValue(inputId,key);
-   if(change.changed)updated[key]=change.value;
+  const selected=String($('wtype').value||'');
+  if(!selected){toast('Choose a workout to load.');return}
+  if(selected.startsWith('routine:')){startRoutine(selected.slice(8));return}
+  if(selected.startsWith('programme:')){
+   const parts=selected.split(':');
+   if(parts.length!==3){toast('This saved programme option is invalid.');return}
+   startProgrammeTemplateDay(parts[1],parts[2]);return;
   }
-  state.foods[index]=updated;
-  resetFoodEditor();save();toast('Food updated');return;
- }
- let amountFactor=1;
- if(barcodeBasis==='per100g'){
-  const amount=$('famount').value;
-  if(nutritionValueState(amount)!=='valid'||nutritionNumber(amount)<=0){toast('Enter the known consumed grams for these per-100 g values.');return}
-  amountFactor=nutritionNumber(amount)/100;
- }
- const scaleValue=inputId=>{
-  const raw=$(inputId).value;
-  if(raw.trim()==='')return '';
-  return safeNutritionMultiply(nutritionNumber(raw),amountFactor);
+  if(!Object.prototype.hasOwnProperty.call(plans,selected)){toast('That workout could not be found. Refresh the workout list and try again.');return}
+  sync();setPlan(selected);state.current.selection=selected;persist();toast('Workout loaded')
  };
  const entry=foodCopySource?{...foodCopySource,id:id(),date:$('fdate').value||today()}:{id:id(),date:$('fdate').value||today()};
  Object.assign(entry,{name,cal:scaleValue('fcal')||0,pro:scaleValue('fpro'),carb:scaleValue('fcarb'),fat:scaleValue('ffat')});
@@ -2205,7 +2059,7 @@ if(!storageLoadError)afterLocalPersist();
 setTimeout(syncOnStartup,1200);
 })();
 </script>
-<script src="./beta-feedback.js?v=5.15.23"></script>
+<script src="./beta-feedback.js?v=5.15.24"></script>
 <script src="./update.js"></script>
 <script>
 if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {
