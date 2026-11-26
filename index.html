@@ -1812,15 +1812,22 @@ function scheduleEncryptedSync(){
  if(encryptedSyncTimer)clearTimeout(encryptedSyncTimer);
  encryptedSyncTimer=setTimeout(()=>syncNow('auto').catch(error=>syncStatus(error.message||'Automatic sync failed.')),1400);
 }
+function downloadRawStorageSafety(){
+ const raw=localStorage.getItem(KEY);
+ if(raw===null)return;
+ const blob=new Blob([raw],{type:'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='overload-corrupt-local-storage-safety-'+today()+'.txt';document.body.appendChild(a);a.click();a.remove();
+ window.setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
 async function restoreEncryptedCloud(phrase,remote){
  const payload=await window.OverloadSync.decrypt(phrase,remote);
- if(storageLoadError)throw new Error('Local data could not be read safely. Restore is disabled to protect the original browser data.');
- downloadBackup('overload-pre-cloud-restore-'+today()+'.json',state);
+ if(storageLoadError)downloadRawStorageSafety();
+ else downloadBackup('overload-pre-cloud-restore-'+today()+'.json',state);
  const d=defaults();
  const next={...d,...payload,settings:{...d.settings,...payload.settings,syncEnabled:true,syncRecoveryKey:phrase,syncRevision:remote.revision,syncDirty:false},current:{...d.current,...payload.current},workouts:payload.workouts,foods:payload.foods,measurements:payload.measurements,recoveries:payload.recoveries||[],routines:payload.routines||[],cardio:payload.cardio||[]};
  delete next.programmes;
  try{localStorage.setItem(KEY,JSON.stringify(next))}catch(error){throw new Error('Cloud backup was decrypted, but local storage could not save it. Existing records have not been replaced.')}
- state=next;init();if(state.current.exercises.length)renderExercises();else setPlan(state.current.type||'Upper A');render();
+ state=next;storageLoadError=false;init();if(state.current.exercises.length)renderExercises();else setPlan(state.current.type||'Upper A');render();
  syncStatus('Cloud backup restored and verified. Local records are now up to date.');
 }
 async function syncNow(mode='manual'){
@@ -1870,16 +1877,15 @@ $('syncEnable').onclick=async()=>{
 };
 $('syncConnect').onclick=async()=>{
  try{
-  if(storageLoadError)throw new Error('Local records could not be read safely. Connect is disabled to protect them.');
   const phrase=$('syncRecoveryKeyInput').value.trim();
   if(phrase.length<32)throw new Error('Enter the recovery key from your other device (at least 32 characters).');
   const remote=await window.OverloadSync.get(phrase);
   state.settings.syncRecoveryKey=phrase;state.settings.syncEnabled=true;
   if(remote){
-   saveSyncMetadata();
    if(confirm('A cloud backup exists at revision '+remote.revision+'. Restore it on this device? A safety copy of current local records will be downloaded first.'))await restoreEncryptedCloud(phrase,remote);
-   else syncStatus('Recovery key connected. Existing cloud backup was not changed. Export local data before choosing any restore.');
+   else {if(!storageLoadError)saveSyncMetadata();syncStatus('Recovery key connected. Existing cloud backup was not changed. Export local data before choosing any restore.');}
   }else{
+   if(storageLoadError)throw new Error('No cloud backup exists for this recovery key. Local browser data is unreadable, so OVERLOAD will not upload an empty replacement.');
    state.settings.syncRevision=0;state.settings.syncDirty=true;saveSyncMetadata();
    await syncNow('manual');
   }
