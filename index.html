@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="overload-ai-endpoint" content="https://overload.ttamlarson.workers.dev/v1/coach">
-<link rel="manifest" href="./manifest.webmanifest?v=5.15.24">
-<link rel="icon" href="./overload-mark.svg?v=5.15.24" type="image/svg+xml">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.24">
+<link rel="manifest" href="./manifest.webmanifest?v=5.15.25">
+<link rel="icon" href="./overload-mark.svg?v=5.15.25" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OVERLOAD">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -740,13 +740,13 @@ input,select,textarea{max-width:100%;font-size:16px}
 <div id="toast" class="hidden" role="status"></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="./muscle-map.js?v=5.15.24"></script>
+<script src="./muscle-map.js?v=5.15.25"></script>
 <script src="./coach-engine.js"></script>
-<script src="./personal-records.js?v=5.15.24"></script>
-<script src="./programme-templates.js?v=5.15.24"></script>
-<script src="./backup-validation.js?v=5.15.24"></script>
-<script src="./sync-client.js?v=5.15.24"></script>
-<script src="./ai-coach-client.js?v=5.15.24"></script>
+<script src="./personal-records.js?v=5.15.25"></script>
+<script src="./programme-templates.js?v=5.15.25"></script>
+<script src="./backup-validation.js?v=5.15.25"></script>
+<script src="./sync-client.js?v=5.15.25"></script>
+<script src="./ai-coach-client.js?v=5.15.25"></script>
 <script>
 (() => {
 'use strict';
@@ -1445,23 +1445,19 @@ function init(){
  const d=today();
  $('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
  ['wdate','fdate','mdate','rdate','cdate'].forEach(k=>{if($(k))$(k).value=d});
- // Keep built-in workouts in one list; only user-created/recovered programmes appear as additional options.
+ // The workout selector contains saved programme days and saved routines only.
  ensureProgrammeTemplates();
- const s=$('wtype'),t=state.current.type||'Upper A';
- const standard=Object.keys(plans).filter(name=>!state.deletedStandardWorkouts.includes(name));
+ const s=$('wtype'),t=state.current.type||'';
  const saved=state.programmeTemplates.filter(template=>template&&!['upper-lower','push-pull-legs'].includes(String(template.id)))
   .flatMap(template=>(Array.isArray(template.days)?template.days:[]).filter(day=>day&&day.id!=null).map(day=>({value:'programme:'+template.id+':'+day.id,label:(template.name||'Saved programme')+' — '+(day.name||'Workout')})));
  const savedRoutines=(state.routines||[]).filter(r=>r&&r.id!=null).map(r=>({value:'routine:'+r.id,label:'Routine — '+(r.name||'Untitled routine')}));
  s.replaceChildren();
- const standardGroup=document.createElement('optgroup');standardGroup.label='Standard workouts';
- standard.forEach(name=>{const option=document.createElement('option');option.value=name;option.textContent=name;standardGroup.appendChild(option)});
- s.appendChild(standardGroup);
- if(saved.length){const savedGroup=document.createElement('optgroup');savedGroup.label='Saved programmes';saved.forEach(item=>{const option=document.createElement('option');option.value=item.value;option.textContent=item.label;savedGroup.appendChild(option)});s.appendChild(savedGroup)}
+ if(saved.length){const savedGroup=document.createElement('optgroup');savedGroup.label='Saved programme days';saved.forEach(item=>{const option=document.createElement('option');option.value=item.value;option.textContent=item.label;savedGroup.appendChild(option)});s.appendChild(savedGroup)}
  if(savedRoutines.length){const routineGroup=document.createElement('optgroup');routineGroup.label='Saved routines';savedRoutines.forEach(item=>{const option=document.createElement('option');option.value=item.value;option.textContent=item.label;routineGroup.appendChild(option)});s.appendChild(routineGroup)}
  const prior=String(state.current.selection||'');
  const selected=saved.find(item=>item.label.endsWith(' — '+t));
  const selectedRoutine=savedRoutines.find(item=>item.value===(String(t).startsWith('routine:')?'routine:'+String(t).slice(8):'routine:'+t));
- const fallback=selected?.value||selectedRoutine?.value||(standard.includes(t)?t:standard[0]||'');
+ const fallback=selected?.value||selectedRoutine?.value||saved[0]?.value||savedRoutines[0]?.value||'';
  s.value=[...s.options].some(option=>option.value===prior)?prior:fallback;
  if(!s.value&&s.options.length)s.selectedIndex=0;
  $('wdate').value=state.current.date||d;
@@ -2211,7 +2207,7 @@ if(!storageLoadError)afterLocalPersist();
 setTimeout(syncOnStartup,1200);
 })();
 </script>
-<script src="./beta-feedback.js?v=5.15.24"></script>
+<script src="./beta-feedback.js?v=5.15.25"></script>
 <script src="./update.js"></script>
 <script>
 if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {
