@@ -787,7 +787,7 @@ try{
 
  state.foods=state.foods.filter(f=>f&&typeof f==='object').map(f=>({...f,cal:n(f.cal ?? f.calories),pro:n(f.pro ?? f.protein)}));
  state.current={...d.current,...state.current};
- legacyProgrammeMigration=Array.isArray(stored.programmes)?stored.programmes:[];
+ legacyProgrammeMigration=Array.isArray(stored.programmes)?stored.programmes:(stored.programmes&&typeof stored.programmes==='object'?Object.values(stored.programmes):[]);
  delete state.programmes; // Legacy saved programmes are migrated below.
  // Migrate the previous custom split builder into V2 saved routines without deleting history.
  if(!state.routines.length && Array.isArray(stored.customSplits)){
