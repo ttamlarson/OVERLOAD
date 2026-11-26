@@ -264,10 +264,9 @@ async function handleSyncRequest(request, env) {
   if (request.method !== "POST") return json({ error: "Method not allowed." }, 405, cors);
   if (!env.SYNC_DB) return json({ error: "Encrypted sync storage is not configured." }, 503, cors);
   const authorization = request.headers.get("authorization") || "";
-  const phrase = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
-  if (phrase.length < 32 || phrase.length > 256) return json({ error: "A valid recovery key is required." }, 401, cors);
-  const expectedId = await sha256Hex("OVERLOAD_SYNC_ID_V1:" + phrase);
-  const authHash = await sha256Hex("OVERLOAD_AUTH_V1:" + phrase);
+  const authToken = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
+  if (!/^[a-f0-9]{64}$/.test(authToken)) return json({ error: "A valid sync credential is required." }, 401, cors);
+  const authHash = await sha256Hex(authToken);
   let input;
   try {
     const length = Number(request.headers.get("content-length") || 0);
@@ -276,7 +275,7 @@ async function handleSyncRequest(request, env) {
     if (new TextEncoder().encode(raw).byteLength > SYNC_MAX_BYTES + 4096) return json({ error: "Encrypted backup is too large." }, 413, cors);
     input = JSON.parse(raw);
   } catch { return json({ error: "Invalid sync request." }, 400, cors); }
-  if (!input || input.syncId !== expectedId || !["get", "put"].includes(input.action)) return json({ error: "Invalid sync request." }, 400, cors);
+  if (!input || typeof input.syncId !== "string" || !/^[a-f0-9]{64}$/.test(input.syncId) || !["get", "put"].includes(input.action)) return json({ error: "Invalid sync request." }, 400, cors);\n  const expectedId = input.syncId;
   const existing = await env.SYNC_DB.prepare("SELECT sync_id, auth_hash, revision, ciphertext, iv, updated_at FROM overload_sync WHERE sync_id = ?").bind(expectedId).first();
   if (existing && !constantTimeEqual(existing.auth_hash, authHash)) return json({ error: "Recovery key is not valid for this backup." }, 401, cors);
   if (input.action === "get") {
