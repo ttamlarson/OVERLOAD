@@ -15,15 +15,15 @@
     ]
   },
   "vars": {
-    "AI_ENABLED": "false",
+    "AI_ENABLED": "true",
     "AI_API_BASE_URL": "https://api.openai.com/v1/chat/completions",
     "AI_MODEL": "gpt-4o-mini",
-    "OVERLOAD_ALLOWED_ORIGIN": "https://overload.ttamlarson.workers.dev"
+    "OVERLOAD_ALLOWED_ORIGIN": "https://ttamlarson.github.io"
   },
   "ratelimits": [
     {
       "name": "AI_RATE_LIMITER",
-      "namespace_id": "741001",
+      "namespace_id": "3104",
       "simple": {
         "limit": 10,
         "period": 60
