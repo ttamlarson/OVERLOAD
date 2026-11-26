@@ -1,11 +1,11 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.22",
+  "version": "5.15.23",
   "releaseDate": "2026-11-26",
-  "notes": "Adds body-weight capture from Recovery check-ins and unified Progress history.",
+  "notes": "Restores legacy saved programmes and adds a reusable routine builder.",
   "releaseNotes": [
-    "Optional body-weight entry in Recovery check-ins",
-    "Recovery weigh-ins automatically appear in Progress history and trend chart",
-    "Preserves existing measurements and migrates older recovery weight entries into durable local storage"
+    "Migrates legacy saved programmes into the current programme library",
+    "Adds routine creation, editing, deletion and workout loading",
+    "Saved programmes and routines are available in the workout dropdown"
   ]
 }
