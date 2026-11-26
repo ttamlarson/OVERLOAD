@@ -1,7 +1,7 @@
 # OVERLOAD data protection, backup and installation audit
 
-**Source-reviewed release:** 5.15.18  
-**Remediation included:** 5.14.2–5.15.18 (offline shell, backup validation, encrypted sync and recovery)  
+**Source-reviewed release:** 5.15.19  
+**Remediation included:** 5.14.2–5.15.19 (offline shell, backup validation, encrypted sync and recovery)  
 **Architecture:** static GitHub Pages PWA; local-first browser storage; optional client-encrypted Cloudflare D1 sync.
 
 ## Executive summary
@@ -14,8 +14,8 @@ This is a privacy advantage compared with a centrally hosted user database, but 
 
 | Area | Finding | Status |
 |---|---|---|
-| Data location | Primary app records remain local-first; optional encrypted cloud snapshots are stored in Cloudflare D1 | Implemented in 5.15.18 |
-| Cross-device recovery | Recovery-key pairing, encrypted sync and revision conflict protection | Implemented in 5.15.18; physical-device validation pending |
+| Data location | Primary app records remain local-first; optional encrypted cloud snapshots are stored in Cloudflare D1 | Implemented in 5.15.19 |
+| Cross-device recovery | Recovery-key pairing, encrypted sync and revision conflict protection | Implemented in 5.15.19; physical-device validation pending |
 | Save failures | Previous save path could throw on quota/storage errors; quiet persist failures were possible | Hardened with visible warning |
 | Backup export | JSON export existed; object URL was revoked immediately after click | Fixed with delayed URL cleanup and metadata |
 | Backup restore | Validation was minimal and safety copy depended on a legacy global not loaded by this app | Hardened in 5.14.3: shared tested validator, schema-version enforcement, bounded record collections, and a downloaded pre-restore safety backup |
@@ -70,7 +70,7 @@ Never test restore over a user's only copy of real records. Use a separate test 
 2. Use the install icon in the address bar or browser menu → Install OVERLOAD.
 3. Launch from the installed app shortcut. The browser tab remains a supported fallback.
 
-## 5.15.18 encrypted sync update\n\n- Added a Cloudflare D1 database and Worker `/v1/sync` endpoint. Encrypted backup data is stored in bounded chunks; the database retains the latest copy and up to 20 previous revisions.\n- The browser derives AES-256-GCM encryption and a separate API credential from a generated 256-bit recovery key. The recovery phrase is not sent to the Worker and is excluded from portable JSON backups.\n- Local saves schedule a debounced sync; IndexedDB retains up to 20 recent local snapshots. Revision checks stop stale devices from silently overwriting newer cloud data.\n- Added explicit connect/restore controls, local safety export before cloud restore, CI syntax checks and client/Worker security tests.\n- Remaining validation: exercise pairing, conflict handling, recovery and offline behaviour on physical iPhone, iPad, Android and desktop browsers.\n\n## 5.14.4 source review update
+## 5.15.19 encrypted sync update\n\n- Added a Cloudflare D1 database and Worker `/v1/sync` endpoint. Encrypted backup data is stored in bounded chunks; the database retains the latest copy and up to 20 previous revisions.\n- The browser derives AES-256-GCM encryption and a separate API credential from a generated 256-bit recovery key. The recovery phrase is not sent to the Worker and is excluded from portable JSON backups.\n- Local saves schedule a debounced sync; IndexedDB retains up to 20 recent local snapshots. Revision checks stop stale devices from silently overwriting newer cloud data.\n- Added explicit connect/restore controls, local safety export before cloud restore, CI syntax checks and client/Worker security tests.\n- Remaining validation: exercise pairing, conflict handling, recovery and offline behaviour on physical iPhone, iPad, Android and desktop browsers.\n\n## 5.14.4 source review update
 
 - Added an AI review panel to the Coach screen. The preview shows the exact compact weekly summary that will be sent; consent must be checked after previewing, and a new preview clears the previous consent.
 - The client sends no raw food entries, recovery notes, body measurements, private notes, or user identifiers. It uses the browser's Cloudflare Access session and does not embed provider credentials.
