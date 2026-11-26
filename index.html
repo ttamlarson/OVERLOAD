@@ -1327,7 +1327,7 @@ function populateFoodLib(){
 let templateDraft=null;
 let creatingProgramme=false;
 function ensureProgrammeTemplates(){
- if(!Array.isArray(state.programmeTemplates))state.programmeTemplates=window.OverloadProgrammeTemplates.createDefaults(plans);
+ if(!Array.isArray(state.programmeTemplates)){state.programmeTemplates=window.OverloadProgrammeTemplates.createDefaults(plans);persist();}
  if(!Array.isArray(state.deletedStandardWorkouts))state.deletedStandardWorkouts=[];
  if(legacyProgrammeMigration.length){
   const normaliseExercise=ex=>({name:String(ex?.name||ex?.exercise||'Exercise'),sets:Array.isArray(ex?.sets)?ex.sets.length:(Number(ex?.sets)||3),target:String(ex?.target||ex?.reps||'8–12')});
