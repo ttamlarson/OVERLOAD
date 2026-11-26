@@ -1929,6 +1929,8 @@ function syncOnStartup(){
  $('syncRecoveryKeyInput').value=state.settings.syncRecoveryKey;
  syncNow('auto').catch(()=>{});
 }
+window.addEventListener('online',()=>{if(state.settings?.syncEnabled)scheduleEncryptedSync()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&state.settings?.syncEnabled)syncNow('auto').catch(()=>{})});
 
 $('export').onclick=()=>downloadBackup('overload-backup-'+today()+'.json');
 $('import').onchange=async e=>{
