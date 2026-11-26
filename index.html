@@ -1429,8 +1429,14 @@ function init(){
  // The workout selector is reserved for saved programme days only.
  ensureProgrammeTemplates();
  const s=$('wtype'),t=state.current.type||'';
- const saved=state.programmeTemplates.filter(template=>String(template.id).startsWith('legacy-')||!['upper-lower','push-pull-legs'].includes(template.id))
-  .flatMap(template=>(template.days||[]).map(day=>({value:'programme:'+template.id+':'+day.id,label:template.name+' — '+day.name})));
+ // Include every saved programme, including the built-in programme templates.
+ // Standard workout plans are deliberately excluded; only programme days appear here.
+ const saved=state.programmeTemplates
+  .filter(template=>template&&Array.isArray(template.days))
+  .flatMap(template=>template.days.filter(day=>day&&day.id!=null).map(day=>({
+   value:'programme:'+template.id+':'+day.id,
+   label:String(template.name||'Saved programme')+' — '+String(day.name||'Workout day')
+  })));
  s.replaceChildren();
  if(saved.length){
   const savedGroup=document.createElement('optgroup');savedGroup.label='Saved programme days';
