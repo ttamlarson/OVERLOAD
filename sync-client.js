@@ -61,11 +61,19 @@
   if(!validation?.valid)throw new Error(validation?.error||'Cloud backup failed integrity validation.');
   return payload;
  }
+ async function latestLocal(){
+  const db=await openDb();if(!db)return null;
+  try{return await new Promise((resolve,reject)=>{
+   const tx=db.transaction(STORE,'readonly'),store=tx.objectStore(STORE),cursor=store.openCursor(null,'prev');
+   cursor.onsuccess=()=>resolve(cursor.result?.value?.payload||null);
+   cursor.onerror=()=>reject(cursor.error);
+  })}finally{db.close()}
+ }
  async function get(phrase){return request(phrase,'get')}
  async function upload(phrase,payload,expectedRevision){
   const encrypted=await encrypt(phrase,payload);
   return request(phrase,'put',{revision:expectedRevision,...encrypted});
  }
  function generateRecoveryKey(){return b64url(crypto.getRandomValues(new Uint8Array(32)))}
- window.OverloadSync=Object.freeze({archiveLocal,generateRecoveryKey,get,upload,decrypt});
+ window.OverloadSync=Object.freeze({archiveLocal,latestLocal,generateRecoveryKey,get,upload,decrypt});
 })();
