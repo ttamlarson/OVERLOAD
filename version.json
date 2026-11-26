@@ -1,11 +1,11 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.23",
+  "version": "5.15.24",
   "releaseDate": "2026-11-26",
-  "notes": "Removes built-in standard workouts from the workout selector.",
+  "notes": "Include every saved programme day in the workout selector.",
   "releaseNotes": [
-    "Workout selector now lists saved programme days only",
-    "Built-in standard workouts are no longer shown as dropdown options",
-    "Existing programme and workout data are not modified"
+    "Workout dropdown now includes days from all saved programmes, including built-in programme templates",
+    "Standard workout options remain excluded",
+    "No workout or programme data is modified"
   ]
 }
