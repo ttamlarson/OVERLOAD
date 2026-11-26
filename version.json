@@ -1,12 +1,12 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.26",
+  "version": "5.15.27",
   "releaseDate": "2026-11-26",
-  "notes": "Repairs programme editing and strengthens workout history preservation/display.",
+  "notes": "Restore programme library defaults and populate workout selector from programme days.",
   "releaseNotes": [
-    "Fixes programme edit, save and delete lookups when stored IDs are strings or numbers",
-    "Preserves workout history if it is stored in a legacy object format",
-    "Automatically opens workout history when saved sessions exist",
-    "Does not intentionally delete existing workout or programme records"
-  ]
+    "Restores built-in programme templates when an older app state contains an empty programme list",
+    "Displays saved programmes in the programme manager without listing individual standard workouts",
+    "Populates workout selector with individual saved programme days and saved routines"
+  ],
+  "dataPreservation": "Existing non-empty custom programmes, routines, workouts and history are retained."
 }

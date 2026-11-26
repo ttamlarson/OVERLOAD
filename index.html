@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="overload-ai-endpoint" content="https://overload.ttamlarson.workers.dev/v1/coach">
-<link rel="manifest" href="./manifest.webmanifest?v=5.15.26">
-<link rel="icon" href="./overload-mark.svg?v=5.15.26" type="image/svg+xml">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.26">
+<link rel="manifest" href="./manifest.webmanifest?v=5.15.27">
+<link rel="icon" href="./overload-mark.svg?v=5.15.27" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.27">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OVERLOAD">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -740,13 +740,13 @@ input,select,textarea{max-width:100%;font-size:16px}
 <div id="toast" class="hidden" role="status"></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="./muscle-map.js?v=5.15.26"></script>
+<script src="./muscle-map.js?v=5.15.27"></script>
 <script src="./coach-engine.js"></script>
-<script src="./personal-records.js?v=5.15.26"></script>
-<script src="./programme-templates.js?v=5.15.26"></script>
-<script src="./backup-validation.js?v=5.15.26"></script>
-<script src="./sync-client.js?v=5.15.26"></script>
-<script src="./ai-coach-client.js?v=5.15.26"></script>
+<script src="./personal-records.js?v=5.15.27"></script>
+<script src="./programme-templates.js?v=5.15.27"></script>
+<script src="./backup-validation.js?v=5.15.27"></script>
+<script src="./sync-client.js?v=5.15.27"></script>
+<script src="./ai-coach-client.js?v=5.15.27"></script>
 <script>
 (() => {
 'use strict';
@@ -1332,7 +1332,11 @@ function populateFoodLib(){
 let templateDraft=null;
 let creatingProgramme=false;
 function ensureProgrammeTemplates(){
- if(!Array.isArray(state.programmeTemplates)){state.programmeTemplates=window.OverloadProgrammeTemplates.createDefaults(plans);persist();}
+ if(!Array.isArray(state.programmeTemplates)||state.programmeTemplates.length===0){
+  // Restore the built-in programme templates when an older release left an empty array.
+  // Existing non-empty custom programmes are retained unchanged.
+  state.programmeTemplates=window.OverloadProgrammeTemplates.createDefaults(plans);persist();
+ }
  if(!Array.isArray(state.deletedStandardWorkouts))state.deletedStandardWorkouts=[];
  if(legacyProgrammeMigration.length){
   const normaliseExercise=ex=>({name:String(ex?.name||ex?.exercise||'Exercise'),sets:Array.isArray(ex?.sets)?ex.sets.length:(Number(ex?.sets)||3),target:String(ex?.target||ex?.reps||'8–12')});
@@ -1350,20 +1354,13 @@ function ensureProgrammeTemplates(){
 function renderProgrammeTemplates(){
  ensureProgrammeTemplates();
  const el=$('programmeTemplates');if(!el)return;
- const standard=Object.keys(plans).filter(name=>!state.deletedStandardWorkouts.includes(name));
- const standardCards=standard.map(name=>`
-  <div class="card">
-   <div class="between" style="gap:8px;align-items:center"><h3>${esc(name)}</h3><button class="btn danger" data-standard-delete="${esc(name)}" aria-label="Delete ${esc(name)}">Delete</button></div>
-   <div class="small">Standard workout · Built-in template</div>
-   <div class="small" style="margin-top:8px">${(plans[name]||[]).length} exercises</div>
-  </div>`).join('');
  const savedCards=state.programmeTemplates.map(template=>`
   <div class="card">
    <div class="between" style="gap:8px;align-items:center"><h3>${esc(template.name)}</h3><div class="row" style="gap:6px;flex-wrap:nowrap"><button class="btn secondary" data-template-edit="${esc(template.id)}">Edit</button><button class="btn danger" data-template-delete="${esc(template.id)}" aria-label="Delete ${esc(template.name)}">Delete</button></div></div>
    <div class="small">${esc(template.description||'Custom training programme')}</div>
    <div style="margin-top:12px">${template.days.map((day,index)=>`<div class="between" style="gap:8px;padding:8px 0;border-top:1px solid var(--line)"><div><strong>${index+1}. ${esc(day.name)}</strong><div class="small">${day.exercises.length} exercises</div></div><button class="btn" data-template-start="${esc(template.id)}" data-template-day="${esc(day.id)}">Start</button></div>`).join('')}</div>
   </div>`).join('');
- el.innerHTML=(standardCards||savedCards)?standardCards+savedCards:'<div class="empty">No standard workouts or saved programmes. Add a programme to get started.</div>';
+ el.innerHTML=savedCards||'<div class="empty">No saved programmes yet. Add a programme to get started.</div>';
 }
 function renderProgrammeTemplateEditor(){
  const el=$('programmeTemplateEditor');if(!el)return;
@@ -1453,7 +1450,7 @@ function init(){
  // The workout selector contains saved programme days and saved routines only.
  ensureProgrammeTemplates();
  const s=$('wtype'),t=state.current.type||'';
- const saved=state.programmeTemplates.filter(template=>template&&!['upper-lower','push-pull-legs'].includes(String(template.id)))
+ const saved=state.programmeTemplates.filter(template=>template&&Array.isArray(template.days))
   .flatMap(template=>(Array.isArray(template.days)?template.days:[]).filter(day=>day&&day.id!=null).map(day=>({value:'programme:'+template.id+':'+day.id,label:(template.name||'Saved programme')+' — '+(day.name||'Workout')})));
  const savedRoutines=(state.routines||[]).filter(r=>r&&r.id!=null).map(r=>({value:'routine:'+r.id,label:'Routine — '+(r.name||'Untitled routine')}));
  s.replaceChildren();
@@ -2212,7 +2209,7 @@ if(!storageLoadError)afterLocalPersist();
 setTimeout(syncOnStartup,1200);
 })();
 </script>
-<script src="./beta-feedback.js?v=5.15.26"></script>
+<script src="./beta-feedback.js?v=5.15.27"></script>
 <script src="./update.js"></script>
 <script>
 if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {
