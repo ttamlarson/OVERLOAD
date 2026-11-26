@@ -1,11 +1,11 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.20",
+  "version": "5.15.21",
   "releaseDate": "2026-11-26",
-  "notes": "Adds encrypted cloud sync, local snapshot recovery and reconnect retry.",
+  "notes": "Adds body-weight capture from Recovery check-ins and unified Progress history.",
   "releaseNotes": [
-    "Client-side AES-GCM encrypted cloud backups",
-    "Revision-safe cross-device sync and local recovery",
-    "Automatic reconnect retry and improved backup guidance"
+    "Optional body-weight entry in Recovery check-ins",
+    "Recovery weigh-ins automatically appear in Progress history and trend chart",
+    "Preserves existing measurements and migrates older recovery weight entries"
   ]
 }
