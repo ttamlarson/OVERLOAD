@@ -1435,7 +1435,7 @@ function init(){
   .filter(template=>template&&Array.isArray(template.days))
   .flatMap(template=>template.days.filter(day=>day&&day.id!=null).map(day=>({
    value:'programme:'+template.id+':'+day.id,
-   label:String(template.name||'Saved programme')+' — '+String(day.name||'Workout day')
+   label:String(day.name||'Workout day')
   })));
  s.replaceChildren();
  if(saved.length){
@@ -1443,7 +1443,7 @@ function init(){
   saved.forEach(item=>{const option=document.createElement('option');option.value=item.value;option.textContent=item.label;savedGroup.appendChild(option)});
   s.appendChild(savedGroup);
  }
- const selected=saved.find(item=>item.label.endsWith(' — '+t));
+ const selected=saved.find(item=>item.label===t);
  s.value=selected?selected.value:(saved[0]?.value||'');
  $('wdate').value=state.current.date||d;
  $('duration').value=state.current.duration||'';
