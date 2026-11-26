@@ -248,7 +248,7 @@ export async function handleRequest(request, env) {
 }
 
 
-const SYNC_MAX_BYTES = 5 * 1024 * 1024;
+const SYNC_MAX_BYTES = 8 * 1024 * 1024;
 const sha256Hex = async value => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value))), b => b.toString(16).padStart(2, "0")).join("");
 const constantTimeEqual = (a, b) => {
   if (typeof a !== "string" || typeof b !== "string" || a.length !== b.length) return false;
@@ -272,26 +272,39 @@ async function handleSyncRequest(request, env) {
   try {
     const length = Number(request.headers.get("content-length") || 0);
     if (length > SYNC_MAX_BYTES + 4096) return json({ error: "Encrypted backup is too large." }, 413, cors);
-    input = await request.json();
+    const raw = await request.text();
+    if (new TextEncoder().encode(raw).byteLength > SYNC_MAX_BYTES + 4096) return json({ error: "Encrypted backup is too large." }, 413, cors);
+    input = JSON.parse(raw);
   } catch { return json({ error: "Invalid sync request." }, 400, cors); }
   if (!input || input.syncId !== expectedId || !["get", "put"].includes(input.action)) return json({ error: "Invalid sync request." }, 400, cors);
   const existing = await env.SYNC_DB.prepare("SELECT sync_id, auth_hash, revision, ciphertext, iv, updated_at FROM overload_sync WHERE sync_id = ?").bind(expectedId).first();
   if (existing && !constantTimeEqual(existing.auth_hash, authHash)) return json({ error: "Recovery key is not valid for this backup." }, 401, cors);
   if (input.action === "get") {
     if (!existing) return json({ error: "No cloud backup exists for this recovery key." }, 404, cors);
-    return json({ revision: existing.revision, ciphertext: existing.ciphertext, iv: existing.iv, updatedAt: existing.updated_at }, 200, cors);
+    const stored = await env.SYNC_DB.prepare("SELECT chunk_data FROM overload_sync_chunks WHERE sync_id = ? AND revision = ? ORDER BY chunk_index").bind(expectedId, existing.revision).all();
+    const chunks = (stored?.results || []).map(row => row.chunk_data);
+    if (!chunks.length) return json({ error: "Cloud backup data is incomplete. Local records have not been changed." }, 503, cors);
+    return json({ revision: existing.revision, chunks, iv: existing.iv, updatedAt: existing.updated_at }, 200, cors);
   }
   if (!Number.isSafeInteger(input.revision) || input.revision < 0 ||
-      typeof input.ciphertext !== "string" || input.ciphertext.length < 16 || input.ciphertext.length > SYNC_MAX_BYTES * 1.4 ||
+      !Array.isArray(input.chunks) || input.chunks.length < 1 || input.chunks.length > 48 ||
+      input.chunks.some(chunk => typeof chunk !== "string" || chunk.length < 1 || chunk.length > 180000) ||
       typeof input.iv !== "string" || !/^[A-Za-z0-9_-]{16}$/.test(input.iv)) {
     return json({ error: "Encrypted backup format is invalid or too large." }, 400, cors);
   }
   const now = new Date().toISOString();
+  const chunkInsert = (revision, chunks) => {
+    const values = chunks.map(() => "(?, ?, ?, ?)").join(",");
+    const params = chunks.flatMap((chunk, index) => [expectedId, revision, index, chunk]);
+    return env.SYNC_DB.prepare("INSERT INTO overload_sync_chunks (sync_id, revision, chunk_index, chunk_data) VALUES " + values).bind(...params);
+  };
   if (!existing) {
     if (input.revision !== 0) return json({ error: "Cloud revision changed. Refresh before uploading." }, 409, cors);
     try {
-      await env.SYNC_DB.prepare("INSERT INTO overload_sync (sync_id, auth_hash, revision, ciphertext, iv, updated_at) VALUES (?, ?, 1, ?, ?, ?)")
-        .bind(expectedId, authHash, input.ciphertext, input.iv, now).run();
+      await env.SYNC_DB.batch([
+        env.SYNC_DB.prepare("INSERT INTO overload_sync (sync_id, auth_hash, revision, ciphertext, iv, updated_at) VALUES (?, ?, 1, '', ?, ?)").bind(expectedId, authHash, input.iv, now),
+        chunkInsert(1, input.chunks)
+      ]);
     } catch {
       return json({ error: "A cloud backup was created on another device. Refresh before uploading." }, 409, cors);
     }
@@ -299,11 +312,15 @@ async function handleSyncRequest(request, env) {
   }
   if (existing.revision !== input.revision) return json({ error: "A newer cloud version exists. Restore it or resolve the conflict before uploading.", revision: existing.revision }, 409, cors);
   const results = await env.SYNC_DB.batch([
-    env.SYNC_DB.prepare("INSERT OR IGNORE INTO overload_sync_history (sync_id, revision, ciphertext, iv, updated_at) SELECT sync_id, revision, ciphertext, iv, updated_at FROM overload_sync WHERE sync_id = ? AND revision = ?").bind(expectedId, existing.revision),
-    env.SYNC_DB.prepare("UPDATE overload_sync SET revision = revision + 1, ciphertext = ?, iv = ?, updated_at = ? WHERE sync_id = ? AND revision = ?").bind(input.ciphertext, input.iv, now, expectedId, input.revision),
-    env.SYNC_DB.prepare("DELETE FROM overload_sync_history WHERE sync_id = ? AND revision NOT IN (SELECT revision FROM overload_sync_history WHERE sync_id = ? ORDER BY revision DESC LIMIT 20)").bind(expectedId, expectedId)
+    env.SYNC_DB.prepare("INSERT OR IGNORE INTO overload_sync_history (sync_id, revision, ciphertext, iv, updated_at) SELECT sync_id, revision, '', iv, updated_at FROM overload_sync WHERE sync_id = ? AND revision = ?").bind(expectedId, existing.revision),
+    env.SYNC_DB.prepare("INSERT OR IGNORE INTO overload_sync_history_chunks (sync_id, revision, chunk_index, chunk_data) SELECT sync_id, revision, chunk_index, chunk_data FROM overload_sync_chunks WHERE sync_id = ? AND revision = ?").bind(expectedId, existing.revision),
+    env.SYNC_DB.prepare("UPDATE overload_sync SET revision = revision + 1, ciphertext = '', iv = ?, updated_at = ? WHERE sync_id = ? AND revision = ?").bind(input.iv, now, expectedId, input.revision),
+    env.SYNC_DB.prepare("DELETE FROM overload_sync_chunks WHERE sync_id = ? AND EXISTS (SELECT 1 FROM overload_sync WHERE sync_id = ? AND revision = ?)").bind(expectedId, expectedId, existing.revision + 1),
+    chunkInsert(existing.revision + 1, input.chunks),
+    env.SYNC_DB.prepare("DELETE FROM overload_sync_history WHERE sync_id = ? AND revision NOT IN (SELECT revision FROM overload_sync_history WHERE sync_id = ? ORDER BY revision DESC LIMIT 20)").bind(expectedId, expectedId),
+    env.SYNC_DB.prepare("DELETE FROM overload_sync_history_chunks WHERE sync_id = ? AND revision NOT IN (SELECT revision FROM overload_sync_history WHERE sync_id = ?)").bind(expectedId, expectedId)
   ]);
-  if (!results?.[1]?.meta?.changes) return json({ error: "A newer cloud version exists. Refresh before uploading." }, 409, cors);
+  if (!results?.[2]?.meta?.changes) return json({ error: "A newer cloud version exists. Refresh before uploading." }, 409, cors);
   return json({ revision: existing.revision + 1, updatedAt: now }, 200, cors);
 }
 
