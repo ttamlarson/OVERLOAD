@@ -1,12 +1,12 @@
 # OVERLOAD data protection, backup and installation audit
 
-**Source-reviewed release:** 5.14.4  
-**Remediation included:** 5.14.2 (offline icon caching and release consistency checks)  
-**Architecture:** static GitHub Pages PWA; local-first browser storage; no user accounts or automatic cloud sync.
+**Source-reviewed release:** 5.15.17  
+**Remediation included:** 5.14.2–5.15.17 (offline shell, backup validation, encrypted sync and recovery)  
+**Architecture:** static GitHub Pages PWA; local-first browser storage; optional client-encrypted Cloudflare D1 sync.
 
 ## Executive summary
 
-OVERLOAD does not currently send workout, nutrition, measurement or recovery records to an OVERLOAD backend. The primary dataset is stored in browser localStorage under the legacy key `apexProtocolData_v1`, intentionally retained for migration compatibility. This means records are tied to the browser profile and site origin on one device. The optional AI review panel is present but disconnected by default; only a compact, explicitly previewed and consented summary can be sent after an operator configures the protected Worker endpoint. They do not automatically follow a user to another phone or computer.
+The primary dataset remains in browser localStorage under the legacy key `apexProtocolData_v1`, intentionally retained for migration compatibility. Optional encrypted sync now uploads an AES-256-GCM ciphertext backup to Cloudflare D1; the recovery phrase stays on the device and a separate derived credential is used for API authentication. The app also keeps recent IndexedDB snapshots and retains up to 20 prior cloud revisions. Records are not readable by the sync database without the recovery phrase. The phrase is stored locally on paired devices for automatic sync, so device/browser profile security remains important.
 
 This is a privacy advantage compared with a centrally hosted user database, but it is also a data-loss risk: clearing website data, losing a device, browser profile corruption, private-browsing cleanup or storage exhaustion can make records unavailable. Users must export and store their own backups.
 
@@ -14,8 +14,8 @@ This is a privacy advantage compared with a centrally hosted user database, but 
 
 | Area | Finding | Status |
 |---|---|---|
-| Data location | Primary app records are stored in browser localStorage; no app account or sync backend exists | Documented |
-| Cross-device recovery | No automatic sync; users need to export/import | Documented |
+| Data location | Primary app records remain local-first; optional encrypted cloud snapshots are stored in Cloudflare D1 | Implemented in 5.15.17 |
+| Cross-device recovery | Recovery-key pairing, encrypted sync and revision conflict protection | Implemented in 5.15.17; physical-device validation pending |
 | Save failures | Previous save path could throw on quota/storage errors; quiet persist failures were possible | Hardened with visible warning |
 | Backup export | JSON export existed; object URL was revoked immediately after click | Fixed with delayed URL cleanup and metadata |
 | Backup restore | Validation was minimal and safety copy depended on a legacy global not loaded by this app | Hardened in 5.14.3: shared tested validator, schema-version enforcement, bounded record collections, and a downloaded pre-restore safety backup |
@@ -36,7 +36,7 @@ This is a privacy advantage compared with a centrally hosted user database, but 
 - Keep two backup copies in separate places, such as a private cloud drive and an encrypted computer backup.
 - Treat exported JSON files as private health and fitness information. Store them securely and do not post them publicly.
 - Before changing phones, browsers, site domains or clearing website data, export a backup and confirm it has downloaded.
-- OVERLOAD does not provide server-side recovery if a device and its backups are lost.
+- Keep the encrypted-sync recovery key somewhere private and separate from your devices; without it, cloud backups cannot be decrypted.\n- Cloud sync is optional and only begins after you generate a recovery key. It does not replace manual backups.
 
 ## Backup and restore procedure
 
@@ -70,7 +70,7 @@ Never test restore over a user's only copy of real records. Use a separate test 
 2. Use the install icon in the address bar or browser menu → Install OVERLOAD.
 3. Launch from the installed app shortcut. The browser tab remains a supported fallback.
 
-## 5.14.4 source review update
+## 5.15.17 encrypted sync update\n\n- Added a Cloudflare D1 database and Worker `/v1/sync` endpoint. Encrypted backup data is stored in bounded chunks; the database retains the latest copy and up to 20 previous revisions.\n- The browser derives AES-256-GCM encryption and a separate API credential from a generated 256-bit recovery key. The recovery phrase is not sent to the Worker and is excluded from portable JSON backups.\n- Local saves schedule a debounced sync; IndexedDB retains up to 20 recent local snapshots. Revision checks stop stale devices from silently overwriting newer cloud data.\n- Added explicit connect/restore controls, local safety export before cloud restore, CI syntax checks and client/Worker security tests.\n- Remaining validation: exercise pairing, conflict handling, recovery and offline behaviour on physical iPhone, iPad, Android and desktop browsers.\n\n## 5.14.4 source review update
 
 - Added an AI review panel to the Coach screen. The preview shows the exact compact weekly summary that will be sent; consent must be checked after previewing, and a new preview clears the previous consent.
 - The client sends no raw food entries, recovery notes, body measurements, private notes, or user identifiers. It uses the browser's Cloudflare Access session and does not embed provider credentials.
@@ -104,4 +104,4 @@ Never test restore over a user's only copy of real records. Use a separate test 
 
 ## Scope and limitations
 
-This is a source-code and configuration audit, not a formal penetration test, independent device lab test, legal privacy assessment or guarantee against browser/device failure. The production installation and backup restore checklist still needs execution on physical iOS, Android and desktop devices. No automatic cloud backup, account recovery, encryption-at-rest layer controlled by OVERLOAD, or cross-device sync has been added.
+This is a source-code and configuration audit, not a formal penetration test, independent device lab test, legal privacy assessment or guarantee against browser/device failure. The production installation, first-time sync, device pairing, conflict handling and restore checklist still needs execution on physical iOS, Android and desktop devices. The app currently restores the latest cloud revision; prior revisions are retained but are not yet selectable in the UI. This is not a formal penetration test, legal privacy assessment or guarantee against device/browser failure.
