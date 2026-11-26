@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="overload-ai-endpoint" content="https://overload.ttamlarson.workers.dev/v1/coach">
-<link rel="manifest" href="./manifest.webmanifest?v=5.15.20">
-<link rel="icon" href="./overload-mark.svg?v=5.15.20" type="image/svg+xml">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.20">
+<link rel="manifest" href="./manifest.webmanifest?v=5.15.21">
+<link rel="icon" href="./overload-mark.svg?v=5.15.21" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.21">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OVERLOAD">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -538,6 +538,7 @@ input,select,textarea{max-width:100%;font-size:16px}
   <div class="field"><label>Stress (1–5)</label><select id="stress"><option value="3">3 — Average</option><option value="1">1 — Very low</option><option value="2">2 — Low</option><option value="4">4 — High</option><option value="5">5 — Very high</option></select></div>
   <div class="field"><label>Soreness (1–5)</label><select id="soreness"><option value="3">3 — Average</option><option value="1">1 — Very low</option><option value="2">2 — Low</option><option value="4">4 — High</option><option value="5">5 — Very high</option></select></div>
   <div class="field"><label>Date</label><input id="rdate" type="date"></div>
+  <div class="field"><label>Body weight (kg) · optional</label><input id="rweight" type="number" min="1" max="500" step="0.1" inputmode="decimal" placeholder="e.g. 64.5"></div>
  </div><div class="field" style="margin-top:10px"><label>Notes</label><textarea id="rnotes" rows="2" placeholder="Fatigue, hydration, nightshift..."></textarea></div><button class="btn" id="saverecovery" style="margin-top:12px">Save check-in</button></div>
  </div></details>
  <details class="dash-section recovery-history" id="recoveryHistory">
@@ -734,13 +735,13 @@ input,select,textarea{max-width:100%;font-size:16px}
 <div id="toast" class="hidden" role="status"></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="./muscle-map.js?v=5.15.20"></script>
+<script src="./muscle-map.js?v=5.15.21"></script>
 <script src="./coach-engine.js"></script>
-<script src="./personal-records.js?v=5.15.20"></script>
-<script src="./programme-templates.js?v=5.15.20"></script>
-<script src="./backup-validation.js?v=5.15.20"></script>
-<script src="./sync-client.js?v=5.15.20"></script>
-<script src="./ai-coach-client.js?v=5.15.20"></script>
+<script src="./personal-records.js?v=5.15.21"></script>
+<script src="./programme-templates.js?v=5.15.21"></script>
+<script src="./backup-validation.js?v=5.15.21"></script>
+<script src="./sync-client.js?v=5.15.21"></script>
+<script src="./ai-coach-client.js?v=5.15.21"></script>
 <script>
 (() => {
 'use strict';
@@ -764,6 +765,16 @@ try{
  const d=defaults();
  state.settings={...d.settings,...state.settings};
  for(const k of ['workouts','foods','measurements','recoveries','routines','cardio'])if(!Array.isArray(state[k]))state[k]=[];
+ // Migrate body weights already attached to older recovery check-ins into the
+ // shared measurement timeline without duplicating existing linked entries.
+ state.recoveries.forEach(r=>{
+  if(!r||typeof r!=='object')return;
+  const raw=r.weight??r.bodyWeight??r.body_weight;
+  const weight=raw==null||raw===''?'':Number(raw);
+  if(weight!==''&&Number.isFinite(weight)&&weight>0&&!state.measurements.some(m=>m&&m.recoveryId===r.id)){
+   state.measurements.push({id:id(),recoveryId:r.id,date:r.date||today(),weight,waist:'',source:'recovery'});
+  }
+ });
 
  state.foods=state.foods.filter(f=>f&&typeof f==='object').map(f=>({...f,cal:n(f.cal ?? f.calories),pro:n(f.pro ?? f.protein)}));
  state.current={...d.current,...state.current};
@@ -1223,7 +1234,18 @@ function renderWorkoutHistory(){
   return `<div class="listitem"><div class="between"><strong>${esc(workout.type||'Workout')}</strong><span class="small">${dateText(workout.date)}</span></div><div class="small">${exercises.length} exercises · ${completed} sets completed${workout.duration?' · '+esc(workout.duration)+' min':''}</div>${workout.notes?`<p class="small">${esc(workout.notes)}</p>`:''}<div class="row">${workoutId?`<button class="btn secondary" data-reload="${esc(workoutId)}">Load again</button><button class="btn danger" data-work-del="${esc(workoutId)}">Delete</button>`:''}</div></div>`;
  }).join(''):'<div class="empty">No workouts saved yet.</div>';
 }
-function renderMeasures(){const ms=[...state.measurements].sort((a,b)=>a.date.localeCompare(b.date));const last=ms.filter(m=>m.weight!=='').at(-1);$('dweight').textContent=last?last.weight+' kg':'—';$('measurelist').innerHTML=ms.length?[...ms].reverse().map(m=>`<div class="history"><span>${dateText(m.date)}</span><strong>${m.weight!==''?esc(m.weight)+' kg':'—'}</strong><span>${m.waist?esc(m.waist)+' cm waist':'—'}</span><button class="iconbtn" data-measure-del="${m.id}">✕</button></div>`).join(''):'<div class="empty">No measurements yet.</div>';drawChart(ms)}
+function renderMeasures(){
+ const ms=(Array.isArray(state.measurements)?state.measurements:[])
+  .filter(m=>m&&typeof m==='object')
+  .map(m=>({...m,date:String(m.date||''),weight:m.weight==null?'':m.weight,waist:m.waist==null?'':m.waist}))
+  .sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+ const weighed=ms.filter(m=>m.weight!==''&&Number.isFinite(Number(m.weight))&&Number(m.weight)>0);
+ const last=weighed.at(-1);
+ if($('dweight'))$('dweight').textContent=last?Number(last.weight).toFixed(1).replace(/\.0$/,'')+' kg':'—';
+ const list=$('measurelist');
+ if(list)list.innerHTML=ms.length?[...ms].reverse().map(m=>'<div class="history"><span>'+esc(dateText(m.date))+'</span><strong>'+(m.weight!==''&&Number.isFinite(Number(m.weight))?esc(m.weight)+' kg':'—')+'</strong><span>'+(m.waist?esc(m.waist)+' cm waist':'—')+'</span><button class="iconbtn" data-measure-del="'+esc(m.id||'')+'" aria-label="Delete measurement">✕</button></div>').join(''):'<div class="empty">No measurements yet. Add a weigh-in in Progress or include body weight in a Recovery check-in.</div>';
+ drawChart(ms);
+}
 function drawChart(ms){const c=$('chart');if(!c)return;const w=c.clientWidth||600,h=190,dpr=window.devicePixelRatio||1;c.width=w*dpr;c.height=h*dpr;const x=c.getContext('2d');x.scale(dpr,dpr);x.clearRect(0,0,w,h);x.strokeStyle='#343941';for(let i=1;i<4;i++){x.beginPath();x.moveTo(8,h*i/4);x.lineTo(w-8,h*i/4);x.stroke()}const a=ms.filter(m=>n(m.weight)>0);if(!a.length){x.fillStyle='#a0a5ad';x.font='13px system-ui';x.fillText('Log your body weight to start the chart.',12,h/2);return}const vals=a.map(m=>n(m.weight)),lo=Math.min(...vals)-1,hi=Math.max(...vals)+1,px=i=>a.length===1?w/2:12+i*(w-24)/(a.length-1),py=v=>h-18-(v-lo)/(hi-lo)*(h-36);x.strokeStyle='#d8dde3';x.lineWidth=2;x.beginPath();a.forEach((m,i)=>i?x.lineTo(px(i),py(n(m.weight))):x.moveTo(px(i),py(n(m.weight))));x.stroke();a.forEach((m,i)=>{x.fillStyle='#f3f4f6';x.beginPath();x.arc(px(i),py(n(m.weight)),3,0,Math.PI*2);x.fill()});x.fillStyle='#a0a5ad';x.font='11px system-ui';x.fillText(hi.toFixed(1)+' kg',8,12);x.fillText(lo.toFixed(1)+' kg',8,h-3)}
 function renderLifts(){
  const m={};
@@ -1237,7 +1259,7 @@ function renderLifts(){
  $('liftlist').innerHTML=entries.length?entries.map(([name,records])=>{const latest=records.at(-1);return `<div class="listitem between"><div><strong>${esc(name)}</strong><div class="small">${dateText(latest.date)} · Reps ${esc(latest.reps||'—')}</div></div><strong>${latest.weight} kg</strong></div>`}).join(''):'<div class="empty">Save workouts to track your recent loads.</div>';
 }
  renderPersonalRecords();
-function renderRecovery(){const report=window.OverloadCoach.evaluate({workouts:state.workouts,recoveries:state.recoveries,foods:state.foods,settings:state.settings,today:today()});$('recoveryReadiness').textContent=report.readiness===null?'—':report.readiness+'/100';$('recoveryReadinessLabel').textContent=report.readiness===null?(report.recoveryAge===Infinity?'Log a recovery check-in to establish a baseline.':'Latest check-in is more than 3 days old.'):(report.readiness>=80?'Favourable recovery signals.':report.readiness>=60?'Some recovery flags — manage session effort.':'Several recovery flags — consider an easier day.');$('recoveryReadinessBar').style.width=(report.readiness===null?0:report.readiness)+'%';$('recoverylist').innerHTML=state.recoveries.length?[...state.recoveries].reverse().map(r=>`<div class="listitem"><div class="between"><strong>${dateText(r.date)}</strong><span class="small">${esc(r.sleep||'—')} h sleep</span></div><div class="small">Energy ${r.energy}/5 · Stress ${r.stress}/5 · Soreness ${r.soreness}/5</div>${r.notes?`<p class="small">${esc(r.notes)}</p>`:''}<button class="iconbtn" data-recovery-del="${r.id}">Delete</button></div>`).join(''):'<div class="empty">No recovery check-ins yet.</div>'}
+function renderRecovery(){const report=window.OverloadCoach.evaluate({workouts:state.workouts,recoveries:state.recoveries,foods:state.foods,settings:state.settings,today:today()});$('recoveryReadiness').textContent=report.readiness===null?'—':report.readiness+'/100';$('recoveryReadinessLabel').textContent=report.readiness===null?(report.recoveryAge===Infinity?'Log a recovery check-in to establish a baseline.':'Latest check-in is more than 3 days old.'):(report.readiness>=80?'Favourable recovery signals.':report.readiness>=60?'Some recovery flags — manage session effort.':'Several recovery flags — consider an easier day.');$('recoveryReadinessBar').style.width=(report.readiness===null?0:report.readiness)+'%';$('recoverylist').innerHTML=state.recoveries.length?[...state.recoveries].reverse().map(r=>'<div class="listitem"><div class="between"><strong>'+esc(dateText(r.date))+'</strong><span class="small">'+esc(r.sleep||'—')+' h sleep</span></div><div class="small">Energy '+esc(r.energy||'—')+'/5 · Stress '+esc(r.stress||'—')+'/5 · Soreness '+esc(r.soreness||'—')+'/5'+(r.weight?' · Body weight '+esc(r.weight)+' kg':'')+'</div>'+(r.notes?'<p class="small">'+esc(r.notes)+'</p>':'')+'<button class="iconbtn" data-recovery-del="'+esc(r.id||'')+'">Delete</button></div>').join(''):'<div class="empty">No recovery check-ins yet.</div>'}
 
 function renderCoach(){
  const report=window.OverloadCoach.evaluate({workouts:state.workouts,recoveries:state.recoveries,foods:state.foods,settings:state.settings,today:today()});
@@ -1269,7 +1291,7 @@ function renderHome(){
  if($('dcalbar'))bar('dcalbar',t.cal,c);
  if($('dprobar'))bar('dprobar',t.pro,p);
  if($('dsessions'))$('dsessions').textContent=state.workouts.length;
- const latest=state.measurements.filter(m=>m.weight!==''&&m.weight!=null).slice(-1)[0];
+ const latest=[...state.measurements].filter(m=>m&&m.weight!==''&&m.weight!=null&&Number.isFinite(Number(m.weight))&&Number(m.weight)>0).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))).slice(-1)[0];
  if($('dweight'))$('dweight').textContent=latest?latest.weight+' kg':'—';
  const activity=$('activity');
  if(activity){const a=[...state.workouts].reverse().slice(0,4);activity.innerHTML=a.length?a.map(w=>`<div class="listitem between"><strong>${esc(w.type)}</strong><span class="small">${dateText(w.date)}</span></div>`).join(''):'<div class="empty">Your logged workouts will appear here.</div>';}
@@ -1703,7 +1725,15 @@ $('foodlist').onclick=e=>{
 };
 $('savemeasure').onclick=()=>{const weight=$('weight').value,waist=$('waist').value;if(weight===''&&waist===''){toast('Enter weight or waist');return}state.measurements.push({id:id(),date:$('mdate').value||today(),weight:weight===''?'':n(weight),waist:waist===''?'':n(waist)});$('weight').value='';$('waist').value='';save();toast('Measurement saved')};
 $('measurelist').onclick=e=>{const b=e.target.closest('[data-measure-del]');if(b){state.measurements=state.measurements.filter(m=>m.id!==b.dataset.measureDel);save()}};
-$('saverecovery').onclick=()=>{state.recoveries.push({id:id(),date:$('rdate').value||today(),sleep:$('sleep').value,energy:$('energy').value,stress:$('stress').value,soreness:$('soreness').value,notes:$('rnotes').value.trim()});$('rnotes').value='';save();toast('Check-in saved')};
+$('saverecovery').onclick=()=>{
+ const recoveryId=id(),date=$('rdate').value||today(),rawWeight=$('rweight').value.trim();
+ const weight=rawWeight===''?'':n(rawWeight);
+ if(rawWeight!==''&&(!Number.isFinite(weight)||weight<=0||weight>500)){toast('Enter a valid body weight in kg');return}
+ const recovery={id:recoveryId,date,sleep:$('sleep').value,energy:$('energy').value,stress:$('stress').value,soreness:$('soreness').value,notes:$('rnotes').value.trim()};
+ if(weight!==''){recovery.weight=weight;state.measurements.push({id:id(),recoveryId,date,weight,waist:'',source:'recovery'})}
+ state.recoveries.push(recovery);
+ $('rnotes').value='';$('rweight').value='';save();toast(weight!==''?'Check-in and body weight saved':'Check-in saved')
+};
 $('recoverylist').onclick=e=>{const b=e.target.closest('[data-recovery-del]');if(b){state.recoveries=state.recoveries.filter(r=>r.id!==b.dataset.recoveryDel);save()}};
 $('savesettings').onclick=()=>{state.settings.calories=Math.max(1,n($('ctarget').value)||2800);state.settings.protein=Math.max(1,n($('ptarget').value)||130);state.settings.fatPercent=Math.min(50,Math.max(10,n($('fatpercent').value)||27));save();toast('Macro targets saved')};
 $('themeSelect').onchange=()=>{state.settings.theme=$('themeSelect').value;applyTheme(state.settings.theme);persist();toast('Theme updated')};document.querySelectorAll('[data-theme-choice]').forEach(button=>{button.addEventListener('click',()=>{state.settings.theme=button.dataset.themeChoice;applyTheme(state.settings.theme);persist();toast('Theme updated')})});
@@ -2097,7 +2127,7 @@ if(!storageLoadError)afterLocalPersist();
 setTimeout(syncOnStartup,1200);
 })();
 </script>
-<script src="./beta-feedback.js?v=5.15.20"></script>
+<script src="./beta-feedback.js?v=5.15.21"></script>
 <script src="./update.js"></script>
 <script>
 if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {
