@@ -10,7 +10,8 @@
  async function derive(phrase){
   if(typeof phrase!=='string'||phrase.trim().length<32)throw new Error('Your recovery key must contain at least 32 characters.');
   const clean=phrase.trim();
-  const syncId=hex(await digest('OVERLOAD_SYNC_ID_V1:'+clean));\n  const authToken=hex(await digest('OVERLOAD_AUTH_V1:'+clean));
+  const syncId=hex(await digest('OVERLOAD_SYNC_ID_V1:'+clean));
+  const authToken=hex(await digest('OVERLOAD_AUTH_V1:'+clean));
   const material=await crypto.subtle.importKey('raw',encoder.encode(clean),'PBKDF2',false,['deriveKey']);
   const encryptionKey=await crypto.subtle.deriveKey({name:'PBKDF2',salt:encoder.encode('OVERLOAD_ENCRYPTION_V1'),iterations:310000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
   return {syncId,authToken,encryptionKey};
