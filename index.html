@@ -1426,20 +1426,19 @@ function init(){
  const d=today();
  $('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
  ['wdate','fdate','mdate','rdate','cdate'].forEach(k=>{if($(k))$(k).value=d});
- // Keep built-in workouts in one list; only user-created/recovered programmes appear as additional options.
+ // The workout selector is reserved for saved programme days only.
  ensureProgrammeTemplates();
- const s=$('wtype'),t=state.current.type||'Upper A';
- const standard=Object.keys(plans).filter(name=>!state.deletedStandardWorkouts.includes(name));
+ const s=$('wtype'),t=state.current.type||'';
  const saved=state.programmeTemplates.filter(template=>String(template.id).startsWith('legacy-')||!['upper-lower','push-pull-legs'].includes(template.id))
   .flatMap(template=>(template.days||[]).map(day=>({value:'programme:'+template.id+':'+day.id,label:template.name+' — '+day.name})));
  s.replaceChildren();
- const standardGroup=document.createElement('optgroup');standardGroup.label='Standard workouts';
- standard.forEach(name=>{const option=document.createElement('option');option.value=name;option.textContent=name;standardGroup.appendChild(option)});
- s.appendChild(standardGroup);
- if(saved.length){const savedGroup=document.createElement('optgroup');savedGroup.label='Saved programme days';saved.forEach(item=>{const option=document.createElement('option');option.value=item.value;option.textContent=item.label;savedGroup.appendChild(option)});s.appendChild(savedGroup)}
+ if(saved.length){
+  const savedGroup=document.createElement('optgroup');savedGroup.label='Saved programme days';
+  saved.forEach(item=>{const option=document.createElement('option');option.value=item.value;option.textContent=item.label;savedGroup.appendChild(option)});
+  s.appendChild(savedGroup);
+ }
  const selected=saved.find(item=>item.label.endsWith(' — '+t));
- s.value=selected?selected.value:(standard.includes(t)?t:standard[0]||'');
- if(!s.value&&s.options.length)s.selectedIndex=0;
+ s.value=selected?selected.value:(saved[0]?.value||'');
  $('wdate').value=state.current.date||d;
  $('duration').value=state.current.duration||'';
  $('wnotes').value=state.current.notes||'';
