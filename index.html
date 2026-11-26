@@ -702,6 +702,7 @@ input,select,textarea{max-width:100%;font-size:16px}
   <button class="btn secondary" id="syncNow">Sync now</button>
   <button class="btn secondary" id="syncCopyKey">Copy recovery key</button>
   <button class="btn secondary" id="syncRestore">Restore cloud backup</button>
+  <button class="btn secondary" id="syncLocalRestore">Recover local snapshot</button>
  </div>
  <div class="notice" id="syncStatus" role="status" aria-live="polite">Encrypted sync is off. Generate a recovery key to enable it. Keep that key somewhere private; it is required to recover your records on another device.</div>
  <p class="small">The server stores encrypted backup blobs only. Each update is revision-checked to prevent silent overwrites, and up to 20 previous cloud versions are retained. Losing your recovery key means the cloud backup cannot be decrypted.</p>
@@ -1903,6 +1904,20 @@ $('syncRestore').onclick=async()=>{
   await restoreEncryptedCloud(phrase,remote);
  }catch(error){syncStatus(error.message||'Could not restore cloud backup.')}
 };
+$('syncLocalRestore').onclick=async()=>{
+ try{
+  const payload=await window.OverloadSync.latestLocal();
+  const validation=payload&&window.OverloadBackup?.validateBackup(payload);
+  if(!payload||!validation?.valid)throw new Error('No valid local recovery snapshot was found on this device.');
+  if(!confirm('Restore the latest automatic local snapshot? OVERLOAD will first download a safety copy of the current records.'))return;
+  if(storageLoadError)downloadRawStorageSafety();else downloadBackup('overload-pre-local-restore-'+today()+'.json',state);
+  const d=defaults(),next={...d,...payload,settings:{...d.settings,...payload.settings,...(state.settings.syncRecoveryKey?{syncRecoveryKey:state.settings.syncRecoveryKey,syncEnabled:state.settings.syncEnabled,syncRevision:state.settings.syncRevision,syncDirty:true}:{})},current:{...d.current,...payload.current},workouts:payload.workouts,foods:payload.foods,measurements:payload.measurements,recoveries:payload.recoveries||[],routines:payload.routines||[],cardio:payload.cardio||[]};
+  delete next.programmes;
+  try{localStorage.setItem(KEY,JSON.stringify(next))}catch(error){throw new Error('The local snapshot is valid, but browser storage could not save it. Existing records were not replaced.')}
+  state=next;storageLoadError=false;init();if(state.current.exercises.length)renderExercises();else setPlan(state.current.type||'Upper A');render();
+  syncStatus('Latest local snapshot restored. Review your workout history and run cloud sync when ready.');
+ }catch(error){syncStatus(error.message||'Could not recover a local snapshot.')}
+};
 $('syncCopyKey').onclick=async()=>{
  const phrase=state.settings?.syncRecoveryKey||$('syncRecoveryKeyInput').value.trim();
  if(phrase.length<32){syncStatus('Generate or connect a recovery key before copying it.');return}
@@ -2076,6 +2091,7 @@ init();
 if(state.current.exercises.length)renderExercises();else setPlan(state.current.type||'Upper A');
 try{render()}catch(error){console.error('OVERLOAD general render failed',error)}
 try{renderProgrammeTemplates()}catch(error){console.error('OVERLOAD programme library render failed',error)}
+if(!storageLoadError)afterLocalPersist();
 setTimeout(syncOnStartup,1200);
 })();
 </script>
