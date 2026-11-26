@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="overload-ai-endpoint" content="https://overload.ttamlarson.workers.dev/v1/coach">
-<link rel="manifest" href="./manifest.webmanifest?v=5.15.23">
-<link rel="icon" href="./overload-mark.svg?v=5.15.23" type="image/svg+xml">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.23">
+<link rel="manifest" href="./manifest.webmanifest?v=5.15.24">
+<link rel="icon" href="./overload-mark.svg?v=5.15.24" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=5.15.24">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OVERLOAD">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -740,13 +740,13 @@ input,select,textarea{max-width:100%;font-size:16px}
 <div id="toast" class="hidden" role="status"></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="./muscle-map.js?v=5.15.23"></script>
+<script src="./muscle-map.js?v=5.15.24"></script>
 <script src="./coach-engine.js"></script>
-<script src="./personal-records.js?v=5.15.23"></script>
-<script src="./programme-templates.js?v=5.15.23"></script>
-<script src="./backup-validation.js?v=5.15.23"></script>
-<script src="./sync-client.js?v=5.15.23"></script>
-<script src="./ai-coach-client.js?v=5.15.23"></script>
+<script src="./personal-records.js?v=5.15.24"></script>
+<script src="./programme-templates.js?v=5.15.24"></script>
+<script src="./backup-validation.js?v=5.15.24"></script>
+<script src="./sync-client.js?v=5.15.24"></script>
+<script src="./ai-coach-client.js?v=5.15.24"></script>
 <script>
 (() => {
 'use strict';
@@ -1397,45 +1397,26 @@ function editProgrammeTemplate(templateId){
  $('programmeTemplateEditor').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function startProgrammeTemplateDay(templateId,dayId){
- const template=state.programmeTemplates.find(item=>item.id===templateId),day=template?.days.find(item=>item.id===dayId);
- if(!day)return;
- state.current.type=day.name;state.current.date=today();state.current.duration='';state.current.notes='';
- state.current.exercises=day.exercises.map(ex=>newEx(ex.name,ex.sets,ex.target));
+ const template=state.programmeTemplates.find(item=>String(item.id)===String(templateId));
+ const day=template?.days?.find(item=>String(item.id)===String(dayId));
+ if(!day){toast('That saved programme workout could not be found.');return}
+ state.current.type=day.name||'Programme workout';
+ state.current.selection='programme:'+template.id+':'+day.id;
+ state.current.date=today();state.current.duration='';state.current.notes='';
+ state.current.exercises=(Array.isArray(day.exercises)?day.exercises:[]).filter(ex=>ex&&String(ex.name||'').trim()).map(ex=>newEx(ex.name,ex.sets,ex.target));
+ if(!state.current.exercises.length){toast('This programme day has no valid exercises. Edit the programme and add an exercise first.');return}
  init();renderExercises();persist();document.querySelector('[data-tab="training"]').click();toast(day.name+' loaded');
 }
-
-function renderRoutineEditor(){
- const el=$('routineEditor');if(!el)return;
- if(!routineDraft){el.classList.add('hidden');el.innerHTML='';return}
- el.classList.remove('hidden');
- el.innerHTML='<div class="card"><div class="between"><h3>'+(routineDraft.id?'Edit routine':'Create routine')+'</h3><button class="iconbtn" data-routine-cancel aria-label="Close editor">✕</button></div>'+
- '<div class="field"><label>Routine name</label><input data-routine-name maxlength="60" value="'+esc(routineDraft.name)+'" placeholder="e.g. Chest and triceps"></div>'+
- '<h4 style="margin:16px 0 8px">Exercises</h4>'+
- routineDraft.exercises.map((ex,index)=>'<div class="formgrid" style="margin:8px 0;align-items:end"><div class="field" style="grid-column:span 2"><label>Exercise '+(index+1)+'</label><input data-routine-exercise="'+index+'" value="'+esc(ex.name)+'" placeholder="Exercise name"></div><div class="field"><label>Sets</label><input type="number" min="1" max="10" data-routine-sets="'+index+'" value="'+esc(ex.sets)+'"></div><div class="field"><label>Rep target</label><input data-routine-target="'+index+'" value="'+esc(ex.target)+'" placeholder="8–12"></div><button class="btn danger" data-routine-remove="'+index+'">Remove</button></div>').join('')+
- '<div class="row" style="margin-top:10px"><button class="btn secondary" data-routine-add-exercise>+ Add exercise</button><button class="btn" data-routine-save>Save routine</button><button class="btn secondary" data-routine-cancel>Cancel</button></div></div>';
-}
-function renderRoutineManager(){
- const list=$('routineList');if(!list)return;
- const routines=Array.isArray(state.routines)?state.routines:[];
- list.innerHTML=routines.length?routines.map(r=>'<div class="listitem"><div class="between"><strong>'+esc(r.name||'Untitled routine')+'</strong><span class="small">'+(Array.isArray(r.exercises)?r.exercises.length:0)+' exercises</span></div><div class="row" style="margin-top:8px"><button class="btn" data-routine-load="'+esc(r.id)+'">Load</button><button class="btn secondary" data-routine-edit="'+esc(r.id)+'">Edit</button><button class="btn danger" data-routine-delete="'+esc(r.id)+'">Delete</button></div></div>').join(''):'<div class="empty">No saved routines yet. Add a routine to build your own reusable workout.</div>';
-}
-function createRoutine(){
- routineDraft={id:'',name:'New routine',exercises:(state.current.exercises||[]).map(ex=>({name:String(ex.name||''),sets:Array.isArray(ex.sets)?ex.sets.length:(Number(ex.sets)||3),target:String(ex.target||'8–12')}))};
- if(!routineDraft.exercises.length)routineDraft.exercises=[{name:'',sets:3,target:'8–12'}];
- renderRoutineEditor();$('routineEditor').scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function editRoutine(routineId){
- const routine=state.routines.find(r=>String(r.id)===String(routineId));if(!routine)return;
- routineDraft={id:routine.id,name:routine.name||'',exercises:(routine.exercises||[]).map(ex=>({name:ex.name||'',sets:Array.isArray(ex.sets)?ex.sets.length:(Number(ex.sets)||3),target:ex.target||'8–12'}))};
- renderRoutineEditor();$('routineEditor').scrollIntoView({behavior:'smooth',block:'nearest'});
-}
 function startRoutine(routineId){
- const routine=state.routines.find(r=>String(r.id)===String(routineId));if(!routine)return;
- state.current.type='routine:'+routine.id;state.current.date=today();state.current.duration='';state.current.notes='';
- state.current.exercises=(routine.exercises||[]).map(ex=>newEx(ex.name,ex.sets,ex.target));
+ const routine=state.routines.find(r=>String(r.id)===String(routineId));
+ if(!routine){toast('That saved routine could not be found.');return}
+ state.current.type=routine.name||'Routine';
+ state.current.selection='routine:'+routine.id;
+ state.current.date=today();state.current.duration='';state.current.notes='';
+ state.current.exercises=(Array.isArray(routine.exercises)?routine.exercises:[]).filter(ex=>ex&&String(ex.name||'').trim()).map(ex=>newEx(ex.name,ex.sets,ex.target));
+ if(!state.current.exercises.length){toast('This routine has no valid exercises. Edit it and add an exercise first.');return}
  init();renderExercises();persist();document.querySelector('[data-tab="training"]').click();toast((routine.name||'Routine')+' loaded');
 }
-
 function svgLine(values,label,suffix=''){
  if(!values.length)return '<div class="empty">Not enough logged data yet.</div>';
  const w=640,h=190,p=28,nums=values.map(v=>v.value),min=Math.min(...nums),max=Math.max(...nums),range=max-min||1;
@@ -1468,18 +1449,20 @@ function init(){
  ensureProgrammeTemplates();
  const s=$('wtype'),t=state.current.type||'Upper A';
  const standard=Object.keys(plans).filter(name=>!state.deletedStandardWorkouts.includes(name));
- const saved=state.programmeTemplates.filter(template=>!['upper-lower','push-pull-legs'].includes(template.id))
-  .flatMap(template=>(template.days||[]).map(day=>({value:'programme:'+template.id+':'+day.id,label:template.name+' — '+day.name})));
- const savedRoutines=(state.routines||[]).map(r=>({value:'routine:'+r.id,label:'Routine — '+r.name}));
+ const saved=state.programmeTemplates.filter(template=>template&&!['upper-lower','push-pull-legs'].includes(String(template.id)))
+  .flatMap(template=>(Array.isArray(template.days)?template.days:[]).filter(day=>day&&day.id!=null).map(day=>({value:'programme:'+template.id+':'+day.id,label:(template.name||'Saved programme')+' — '+(day.name||'Workout')})));
+ const savedRoutines=(state.routines||[]).filter(r=>r&&r.id!=null).map(r=>({value:'routine:'+r.id,label:'Routine — '+(r.name||'Untitled routine')}));
  s.replaceChildren();
  const standardGroup=document.createElement('optgroup');standardGroup.label='Standard workouts';
  standard.forEach(name=>{const option=document.createElement('option');option.value=name;option.textContent=name;standardGroup.appendChild(option)});
  s.appendChild(standardGroup);
  if(saved.length){const savedGroup=document.createElement('optgroup');savedGroup.label='Saved programmes';saved.forEach(item=>{const option=document.createElement('option');option.value=item.value;option.textContent=item.label;savedGroup.appendChild(option)});s.appendChild(savedGroup)}
  if(savedRoutines.length){const routineGroup=document.createElement('optgroup');routineGroup.label='Saved routines';savedRoutines.forEach(item=>{const option=document.createElement('option');option.value=item.value;option.textContent=item.label;routineGroup.appendChild(option)});s.appendChild(routineGroup)}
+ const prior=String(state.current.selection||'');
  const selected=saved.find(item=>item.label.endsWith(' — '+t));
  const selectedRoutine=savedRoutines.find(item=>item.value===(String(t).startsWith('routine:')?'routine:'+String(t).slice(8):'routine:'+t));
- s.value=selected?selected.value:(selectedRoutine?selectedRoutine.value:(standard.includes(t)?t:standard[0]||''));
+ const fallback=selected?.value||selectedRoutine?.value||(standard.includes(t)?t:standard[0]||'');
+ s.value=[...s.options].some(option=>option.value===prior)?prior:fallback;
  if(!s.value&&s.options.length)s.selectedIndex=0;
  $('wdate').value=state.current.date||d;
  $('duration').value=state.current.duration||'';
@@ -1548,7 +1531,27 @@ function init(){
    }
  });
 
- function sync(){state.current.type=$('wtype').value;state.current.date=$('wdate').value;state.current.duration=$('duration').value;state.current.notes=$('wnotes').value}
+ function workoutSelectionLabel(value){
+ if(String(value).startsWith('programme:')){
+  const [,templateId,dayId]=String(value).split(':');
+  const template=state.programmeTemplates.find(item=>String(item.id)===String(templateId));
+  const day=template?.days?.find(item=>String(item.id)===String(dayId));
+  return day?.name||'Workout';
+ }
+ if(String(value).startsWith('routine:')){
+  const routine=state.routines.find(item=>String(item.id)===String(String(value).slice(8)));
+  return routine?.name||'Workout';
+ }
+ return String(value||'Workout');
+}
+function sync(){
+ const selection=$('wtype').value;
+ state.current.selection=selection;
+ state.current.type=workoutSelectionLabel(selection);
+ state.current.date=$('wdate').value;
+ state.current.duration=$('duration').value;
+ state.current.notes=$('wnotes').value;
+}
 function activateView(tab){
  const target=$(tab);if(!target)return;
  document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
@@ -1674,13 +1677,16 @@ if(workoutMapFold){
  workoutMapFold.addEventListener('toggle',()=>localStorage.setItem(foldKey,workoutMapFold.open?'open':'closed'));
 }
 $('loadplan').onclick=()=>{
- const selected=$('wtype').value;
+ const selected=String($('wtype').value||'');
+ if(!selected){toast('Choose a workout to load.');return}
  if(selected.startsWith('routine:')){startRoutine(selected.slice(8));return}
  if(selected.startsWith('programme:')){
-  const [,templateId,dayId]=selected.split(':');
-  startProgrammeTemplateDay(templateId,dayId);return;
+  const parts=selected.split(':');
+  if(parts.length!==3){toast('This saved programme option is invalid.');return}
+  startProgrammeTemplateDay(parts[1],parts[2]);return;
  }
- sync();setPlan(selected);persist();toast('Workout loaded')
+ if(!Object.prototype.hasOwnProperty.call(plans,selected)){toast('That workout could not be found. Refresh the workout list and try again.');return}
+ sync();setPlan(selected);state.current.selection=selected;persist();toast('Workout loaded')
 };
 $('addex').onclick=()=>{state.current.exercises.push(newEx('New exercise'));renderExercises();persist()};
 $('exercises').oninput=e=>{const t=e.target;if(t.dataset.name){const x=state.current.exercises.find(a=>a.id===t.dataset.name);if(x)x.name=t.value}if(t.dataset.set){const x=state.current.exercises.find(a=>a.id===t.dataset.set),s=x?.sets[+t.dataset.i];if(s)s[t.dataset.key]=t.value;renderWorkoutMap()}
@@ -2205,7 +2211,7 @@ if(!storageLoadError)afterLocalPersist();
 setTimeout(syncOnStartup,1200);
 })();
 </script>
-<script src="./beta-feedback.js?v=5.15.23"></script>
+<script src="./beta-feedback.js?v=5.15.24"></script>
 <script src="./update.js"></script>
 <script>
 if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {
