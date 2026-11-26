@@ -1326,7 +1326,8 @@ function ensureProgrammeTemplates(){
  if(!Array.isArray(state.deletedStandardWorkouts))state.deletedStandardWorkouts=[];
  if(Array.isArray(state.routines)&&state.routines.length){
   const known=new Set(state.programmeTemplates.map(p=>p.id));
-  const imported=state.routines.filter((r,index)=>r&&Array.isArray(r.exercises)&&r.exercises.length&&!known.has('legacy-'+String(r.id||('routine-'+index)))).map((r,index)=>({
+  const deletedLegacy=new Set(Array.isArray(state.deletedLegacyProgrammeIds)?state.deletedLegacyProgrammeIds.map(String):[]);
+  const imported=state.routines.filter((r,index)=>r&&Array.isArray(r.exercises)&&r.exercises.length&&!deletedLegacy.has('legacy-'+String(r.id||('routine-'+index)))&&!known.has('legacy-'+String(r.id||('routine-'+index)))).map((r,index)=>({
    id:'legacy-'+String(r.id||('routine-'+index)),name:String(r.name||'Saved routine '+(index+1)),
    description:'Recovered from your saved routines',
    days:[{id:'legacy-day-'+String(r.id||('routine-'+index)),name:String(r.name||'Workout'),exercises:r.exercises.map(ex=>({
@@ -1557,9 +1558,16 @@ $('programmeTemplates').onclick=e=>{
   const deleteId=String(b.dataset.templateDelete);
   const template=state.programmeTemplates.find(item=>String(item.id)===deleteId);if(!template)return;
   if(!confirm(`Delete the programme “${template.name}”? This will not delete completed workout history.`))return;
+  // Tombstone routine-derived programme IDs so the legacy-routine migration
+  // cannot silently recreate a programme immediately after it is deleted.
+  if(deleteId.startsWith('legacy-')){
+   if(!Array.isArray(state.deletedLegacyProgrammeIds))state.deletedLegacyProgrammeIds=[];
+   if(!state.deletedLegacyProgrammeIds.map(String).includes(deleteId))state.deletedLegacyProgrammeIds.push(deleteId);
+  }
   state.programmeTemplates=state.programmeTemplates.filter(item=>String(item.id)!==deleteId);
   if(templateDraft&&String(templateDraft.id)===deleteId){templateDraft=null;creatingProgramme=false;renderProgrammeTemplateEditor()}
-  save();
+  const saved=persist();
+  if(!saved)return;
   renderProgrammeTemplates();
   init();
   toast('Programme deleted');
