@@ -30,7 +30,7 @@
    await new Promise((resolve,reject)=>{
     const tx=db.transaction(STORE,'readwrite'),store=tx.objectStore(STORE);
     store.add({createdAt:new Date().toISOString(),payload});
-    const count=store.count();count.onsuccess=()=>{const excess=count.result-19;if(excess>0){const cursor=store.openCursor();let removed=0;cursor.onsuccess=()=>{const c=cursor.result;if(!c||removed>=excess)return;c.delete();removed++;c.continue()}}};
+    const count=store.count();count.onsuccess=()=>{const excess=count.result-20;if(excess>0){const cursor=store.openCursor();let removed=0;cursor.onsuccess=()=>{const c=cursor.result;if(!c||removed>=excess)return;c.delete();removed++;c.continue()}}};
     tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
    });
    db.close();return true;
