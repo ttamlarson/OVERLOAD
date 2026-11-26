@@ -1,11 +1,11 @@
 {
   "app": "OVERLOAD",
-  "version": "5.15.19",
+  "version": "5.15.20",
   "releaseDate": "2026-11-26",
-  "notes": "Adds encrypted cloud sync, local snapshot recovery and improved backup guidance.",
+  "notes": "Adds encrypted cloud sync, local snapshot recovery and reconnect retry.",
   "releaseNotes": [
     "Client-side AES-GCM encrypted cloud backups",
     "Revision-safe cross-device sync and local recovery",
-    "Updated privacy and backup guidance"
+    "Automatic reconnect retry and improved backup guidance"
   ]
 }
